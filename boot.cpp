@@ -1,10 +1,9 @@
 #include "cpu.cpp"
 int main(){
-    cpu.reg.init();
+    cpu.ldsp(0xFFFE);
     cpu.printState();
-    cpu.reg.a=0x1;
+    cpu.xor_a();
     cpu.printState();
-    cpu.rrc_a();
+    cpu.ldhl(0x9FFF);
     cpu.printState();
-    return 0;
 }

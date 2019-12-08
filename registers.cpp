@@ -36,4 +36,7 @@ struct registers{
         r|=(l&0xFF);
         return r;
     }
+    void setsp(uint16_t n){
+       sp=n;
+    }
 };
