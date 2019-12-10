@@ -290,7 +290,7 @@ struct CPU
         reg.pc += 2;
         m = 3;
     }
-    void ldHLi_a_()
+    void ldHLi_a()
     {
         //LDI [HL],A
         mmu.write8(reg.gethl(), reg.a);
@@ -552,6 +552,17 @@ struct CPU
         reg.f ^= 0x10;
         m = 1;
     }
+    //4x INstructions
+    void ldc_a(){
+        reg.c = reg.a;
+        m = 1;
+    }
+    //7x Instructions
+    void ldHL_a()
+    {
+        mmu.write8(reg.gethl(), reg.a);
+        m=2;
+    }
     //8x Instructions
     void add_b()
     {
@@ -763,7 +774,6 @@ struct CPU
         reg.a = result;
         m = 1;
     }
-    //9x Instructions
     //Ax Instructions
     void xor_a()
     {
@@ -775,6 +785,16 @@ struct CPU
         m = 2;
     }
     //Cx Instructions
+    void popbc(){
+        reg.setbc(mmu.read16(reg.sp));
+        reg.sp+=2;
+        m=3;
+    }
+    void pushbc(){
+        reg.sp-=2;
+        mmu.write16(reg.sp,reg.getbc());
+        m=3;
+    }
     void add_n()
     {
         uint8_t n = mmu.read8(reg.pc);
@@ -789,6 +809,18 @@ struct CPU
         reg.a = result;
         reg.pc++;
         m = 2;
+    }
+    void ret(){
+        reg.pc=mmu.read16(reg.sp);
+        reg.sp+=2;
+        m=3;
+    }
+    void call_n(){
+        uint16_t n=mmu.read16(reg.pc);
+        reg.sp-=2;
+        mmu.write16(reg.sp,reg.pc+2);
+        reg.pc=n;
+        m=5;
     }
     void adc_n()
     {
@@ -805,6 +837,16 @@ struct CPU
         reg.pc++;
         m = 2;
     }
+    //Ex Intructions
+    void ldHN_a(){    
+        mmu.write8(0xFF00+mmu.read8(reg.pc), reg.a);
+        reg.pc++;
+        m = 3;
+    }
+    void ldHC_a(){    
+        mmu.write8(0xFF00+reg.c, reg.a);
+        m = 2;
+    }
     void printState()
     {
         cout << "a:" << hex << uppercase << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
@@ -814,7 +856,8 @@ struct CPU
         cout << "pc:" << reg.pc << "\tsp:" << reg.sp << "\n";
         cout << "Flags\n";
         cout << "z:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\n";
-        cout << "Time passed:" << dec << t_tot << hex << endl;
+        cout << "Time passed:" << dec << t_tot << endl;
+        cout << "Cycles passed:" << m_tot << hex << endl;
     }
     void reset()
     {
@@ -827,7 +870,8 @@ struct CPU
     void fetchExecute()
     {
         while (1)
-        {
+        {   if(reg.pc>0x0100)
+                mmu.b=0;
             uint8_t op = mmu.read8(reg.pc++);
             map(op);
             m_tot += m;
@@ -843,9 +887,53 @@ struct CPU
             cout << "NOP\n";
             nop();
             break;
+        case 0x05:
+            cout << "DEC B\n";
+            dec_b();
+            break;
+        case 0x06:
+            cout << "LD B,N\n";
+            ldb_n();
+            break;
+        case 0x0C:
+            cout << "INC C\n";
+            inc_c();
+            break;
+        case 0x0E:
+            cout << "LD C,N\n";
+            ldc_n();
+            break;
+        case 0x11:
+            cout << "LD DE,NN\n";
+            ldde();
+            break;
+        case 0x13:
+            cout << "INC DE\n";
+            inc_de();
+            break;
+        case 0x17:
+            cout << "RL A\n";
+            rl_a();
+            break;
+        case 0x1A:
+            cout << "LD A,[DE]\n";
+            ld_DE();
+            break;
+        case 0x20:
+            cout << "JR NZ,N\n";
+            jrnz_n();
+            break;
         case 0x21:
             cout << "LD HL,NN\n";
             ldhl();
+            break;
+        case 0x22:
+            cout << "LDI HL,A\n";
+            ldHLi_a();
+            break;
+        case 0x23:
+            cout << "INC HL\n";
+            inc_hl();
             break;
         case 0x31:
             cout << "LD SP,NN\n";
@@ -855,9 +943,33 @@ struct CPU
             cout << "LDD [HL],A\n";
             ldHLd_a();
             break;
+        case 0x3E:
+            cout << "LD A,N\n";
+            ld_n();
+            break;
+        case 0x4F:
+            cout << "LD C,A\n";
+            ldc_a();
+            break;
+        case 0x77:
+            cout << "LD [HL],A\n";
+            ldHL_a();
+            break;
         case 0xAF:
             cout << "XOR A\n";
             xor_a();
+            break;
+        case 0xC1:
+            cout << "POP BC\n";
+            popbc();
+            break;
+        case 0xC5:
+            cout << "PUSH BC\n";
+            pushbc();
+            break;
+        case 0xC9:
+            cout << "RET\n";
+            ret();
             break;
         case 0xCB:
         {
@@ -866,6 +978,18 @@ struct CPU
             preMap(op);
             break;
         }
+        case 0xCD:
+            cout << "CALL NN\n";
+            call_n();
+            break;
+        case 0xE0:
+            cout << "LDH [n],A\n";
+            ldHN_a();
+            break;
+        case 0xE2:
+            cout << "LDH [C],A\n";
+            ldHC_a();
+            break;
         default:
             cout << "Unknown Instruction 0x" << unsigned(op) << endl;
             exit(1);
@@ -876,10 +1000,36 @@ struct CPU
     {
         switch (op)
         {
-        case 0:
+        case 0x11:
+            cout<<"RL C\n";
+            rl_c();
+            break;
+        case 0x7C:
+            cout<<"BIT 7,H\n";
+            bit7_h();
+            break;
         default:
             cout << "Unknown Instruction 0xCB 0x" << unsigned(op) << endl;
             exit(1);
         }
+    }
+    //1x Instructions
+    void rl_c(){
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x80) >> 3);
+        reg.c <<= 1;
+        reg.c += c;
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 1;
+    }
+    //7x Instructions
+    void bit7_h(){
+        reg.f&=0x10;
+        reg.f|=0x20;
+        if(!(reg.h>>7))
+            reg.f|=0x80;
+        m=2;
     }
 } cpu;

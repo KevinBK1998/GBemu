@@ -1,5 +1,7 @@
 #include <iostream>
-#include <fstream>
+#include <stdlib.h>
+#include<stdio.h>
+#include<fstream>
 #include <stdint.h>
 using namespace std;
 struct MMU
@@ -30,12 +32,21 @@ struct MMU
     void reset()
     {
         b = 1;
+        load("red.gb");
     }
     void load(char *name)
     {
-        ifstream cart;
-        cart.open(name);
-        //TODO complete this
+        char c;
+        ifstream fin(name);
+	    if (!fin) {
+            cout<<"Error Opening ROM\n";
+            exit(-1);
+	    }
+        int i=0;
+        while(i<32768){
+            fin.get(c);
+            rom[i++]=c;
+        }
     }
     uint8_t read8(uint16_t add)
     {
@@ -46,14 +57,8 @@ struct MMU
             {
                 if (add < 0x0100)
                     return bios[add];
-                else
-                {
-                    b = 0;
-                    cout << "BIOS over\n";
-                }
-            }
-            else
-                return rom[add];
+            } 
+            return rom[add];
         case 0x1000:
         case 0x2000:
         case 0x3000:

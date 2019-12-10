@@ -1,10 +1,13 @@
-#include "cpu.h"
+#include "cpu.cpp"
+
 int main(){
-    cpu.reg.init();
-    cpu.reg.f=0x0;
-    cpu.printState();
-    cout<<endl;
-    cpu.ccf();
-    cpu.printState();
+    mmu.load("red.gb");
+    //  char c;
+    //  ifstream fin("red.gb",ios::binary);
+	//  if (!fin) {
+    //      cout<<"TATA\n";
+    //      exit(-1);
+	//  }
+    //  while(fin.get(c))cout<<unsigned(c);
     return 0;
 }
