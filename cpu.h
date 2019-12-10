@@ -1,0 +1,103 @@
+#include<iostream>
+#include<stdlib.h>
+#ifndef REG_h
+#define REG_h
+#include "registers.h"
+#endif
+#ifndef MEM_h
+#define MEM_h
+#include "memory.cpp"
+#endif
+using namespace std;
+struct CPU{
+    registers reg;
+    int m,m_tot;
+    int t,t_tot;
+    void nop();
+    void ldbc();
+    void ldBC_a();
+    void inc_bc();
+    void inc_b();
+    void dec_b();
+    void ldb_n();
+    void rlc_a();
+    void ldM_sp();
+    void addhl_bc();
+    void ld_BC();
+    void dec_bc();
+    void inc_c();
+    void dec_c();
+    void ldc_n();
+    void rrc_a();
+    void stop();
+    void ldde();
+    void ldDE_a();
+    void inc_de();
+    void inc_d();
+    void dec_d();
+    void ldd_n();
+    void rl_a();
+    void jr_n();
+    void addhl_de();
+    void ld_DE();
+    void dec_de();
+    void inc_e();
+    void dec_e();
+    void lde_n();
+    void rr_a();
+    void jrnz_n();
+    void ldhl();
+    void ldHLi_a_();
+    void inc_hl();
+    void inc_h();
+    void dec_h();
+    void ldh_n();
+    void daa();
+    void jrz_n();
+    void addhl_hl();
+    void ldi_HL();
+    void dec_hl();
+    void inc_l();
+    void dec_l();
+    void ldl_n();
+    void cpl();
+    void jrnc_n();
+    void ldsp();
+    void ldHLd_a();
+    void inc_sp();
+    void inc_HL();
+    void dec_HL();
+    void ldHL_n();
+    void scf();
+    void jrc_n();
+    void addhl_sp();
+    void ldd_HL();
+    void dec_sp();
+    void inc_a();
+    void dec_a();
+    void ld_n();
+    void ccf();
+    void add_b();
+    void add_c();
+    void add_d();
+    void add_e();
+    void add_h();
+    void add_l();
+    void add_HL();
+    void add_a();
+    void adc_b();
+    void adc_c();
+    void adc_d();
+    void adc_e();
+    void adc_h();
+    void adc_l();
+    void adc_HL();
+    void adc_a();
+    void xor_a();
+    void add_n();
+    void adc_n();
+    void printState();
+    void reset();
+    void fetchExecute();
+    void map(uint8_t op);
+}cpu;

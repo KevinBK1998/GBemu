@@ -1,10 +1,10 @@
-#include "cpu.cpp"
+#include "cpu.h"
 int main(){
     cpu.reg.init();
+    cpu.reg.f=0x0;
     cpu.printState();
-    cpu.reg.a=0x1;
-    cpu.printState();
-    cpu.rrc_a();
+    cout<<endl;
+    cpu.ccf();
     cpu.printState();
     return 0;
 }
