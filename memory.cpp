@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include<fstream>
 #include <stdint.h>
+#include "gpu.cpp"
 using namespace std;
 struct MMU
 {
@@ -27,8 +28,6 @@ struct MMU
     uint8_t wram[8192];
     uint8_t eram[8192];
     uint8_t zram[128];
-    uint8_t vram[8192];
-    uint8_t oam[160];
     void reset()
     {
         b = 1;
@@ -70,7 +69,7 @@ struct MMU
             return rom[add];
         case 0x8000:
         case 0x9000:
-            return vram[add & 0x1FFF];
+            return gpu.vram[add & 0x1FFF];
         case 0xA000:
         case 0xB000:
             return eram[add & 0x1FFF];
@@ -84,7 +83,7 @@ struct MMU
             {
             case 0xE00:
                 if (add < 0xFEA0)
-                    return oam[add & 0xFF];
+                    return gpu.oam[add & 0xFF];
                 else
                     return 0;
             case 0xF00:
@@ -120,7 +119,7 @@ struct MMU
             break;
         case 0x8000:
         case 0x9000:
-            vram[add & 0x1FFF] = data; //not complete
+            gpu.vram[add & 0x1FFF] = data; //not complete
             break;
         case 0xA000:
         case 0xB000:
@@ -136,7 +135,7 @@ struct MMU
             {
             case 0xE00:
                 if (add < 0xFEA0)
-                    oam[add & 0xFF] = data; //not complete
+                    gpu.oam[add & 0xFF] = data; //not complete
                 break;
             case 0xF00:
                 if (add < 0xFF80)
