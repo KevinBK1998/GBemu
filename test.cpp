@@ -1,13 +1,9 @@
-#include "cpu.cpp"
-
-int main(){
-    mmu.load("red.gb");
-    //  char c;
-    //  ifstream fin("red.gb",ios::binary);
-	//  if (!fin) {
-    //      cout<<"TATA\n";
-    //      exit(-1);
-	//  }
-    //  while(fin.get(c))cout<<unsigned(c);
-    return 0;
+#include "gpu.cpp"
+int main(int argc, char *args[])
+{
+	gpu.reset();
+    gpu.loop();
+	//Free resources and close SDL
+	gpu.close();
+	return 0;
 }
