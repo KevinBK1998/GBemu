@@ -31,7 +31,7 @@ struct MMU
     void reset()
     {
         b = 1;
-        load("red.gb");
+        load("opus5.gb");
     }
     void load(char *name)
     {
@@ -119,7 +119,7 @@ struct MMU
             break;
         case 0x8000:
         case 0x9000:
-            gpu.vram[add & 0x1FFF] = data; //not complete
+            gpu.vram[add & 0x1FFF] = data;//??
             break;
         case 0xA000:
         case 0xB000:

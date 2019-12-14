@@ -23,6 +23,8 @@
         "new": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "cmath": "cpp",
+        "cinttypes": "cpp"
     }
 }

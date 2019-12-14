@@ -2089,14 +2089,14 @@ struct CPU
     void printState()
     {
         cout << "a:" << hex << uppercase << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
-        cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
-        cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
-        cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
+        //cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
+        //cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
+        //cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
         cout << "pc:" << reg.pc << "\tsp:" << reg.sp << "\n";
-        cout << "Flags\n";
+        //cout << "Flags\n";
         cout << "z:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\n";
         cout << "Time passed:" << dec << t_tot / 1000 << " ms" << endl;
-        cout << "Cycles passed:" << m_tot << hex << endl;
+        //cout << "Cycles passed:" << m_tot << hex << endl;
     }
     void reset()
     {
@@ -2121,7 +2121,7 @@ struct CPU
                 if (gpu.line == 143)
                 { //if last line go to vblank after render screen
                     gpu.mode = 1;
-                    //gpu.screen();
+                    gpu.renScreen();
                 }
                 else
                 {
@@ -2135,7 +2135,8 @@ struct CPU
                 gpu.clk = 0;
                 gpu.line++;
                 if (gpu.line == 153)
-                {  //if vblank done go to oam(repeat)
+                { //if vblank done go to oam(repeat)
+                    cout << "VBLANK\n";
                     gpu.mode = 2;
                     gpu.line = 0;
                 }
@@ -2153,7 +2154,7 @@ struct CPU
             { //if vram done scanline and enter hblank
                 gpu.mode = 0;
                 gpu.clk = 0;
-                //gpu.scanline();
+                gpu.scanline();
             }
             break;
         default:
@@ -2174,8 +2175,12 @@ struct CPU
             m_tot += m;
             t_tot += t;
             gpuStep();
-            printState();
-            if(t_tot>500000)break;
+            //printState();
+            if (t_tot > 500000)
+            {
+                int i;cin>>i;
+                break;
+            } //bypass infinite loop
         }
     }
     void map(uint8_t op)
