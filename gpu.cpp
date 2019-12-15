@@ -2,17 +2,28 @@
 #include <stdlib.h>
 #include <iostream>
 #include <SDL2/SDL.h>
-const int SCREEN_WIDTH = 160;//*2;
-const int SCREEN_HEIGHT = 144;//*2;
+const int SCREEN_WIDTH = 160;  //*2;
+const int SCREEN_HEIGHT = 144; //*2;
 
 struct GPU
 {
+    //GPU registers
+    uint8_t ctrl, bgpal, scx, scy, line;
+    /*
+    LCD&GPU control 0xFF40
+                7      |6           |5     |4          |3          |2                         |1      |0
+                Display|win:tile map|window|BG tile set|BG tile map|Sprites:size(0-8x8,1-8x16)|Sprites|BG    
+    Scroll Y        0xFF42
+    Scroll X        0xFF43
+    Current scnline 0xFF44
+    BG palette      0xFF47
+    */
+    //GPU memory
     uint8_t vram[8192];
     uint8_t oam[160];
-    int bgmap, bgtile, scx, scy;
-    int mode;
-    int line;
-    int clk;
+    //flags
+    int mode,clk;
+    //graphic components
     SDL_Window *win;
     SDL_Renderer *ren;
     bool quit;
@@ -87,43 +98,31 @@ struct GPU
             quit = false;
             mode = 2;
             clk = line = 0;
+            ctrl=0;
+            bgpal = 0xE4;
             //Clear screen
             SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
             SDL_RenderClear(ren);
             SDL_RenderPresent(ren);
         }
     }
-    void loop()
+    int palMap(int v)
     {
-        //Event handler
-        SDL_Event e;
-
-        //While application is running
-        while (!quit)
+        switch (v)
         {
-            //Handle events on queue
-            while (SDL_PollEvent(&e) != 0)
-            {
-                //User requests quit
-                if (e.type == SDL_QUIT)
-                {
-                    quit = true;
-                }
-            }
-            //Clear screen
-            SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
-            SDL_RenderClear(ren);
-            SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0x00, 0xFF);
-            for (int i = 0; i < SCREEN_WIDTH; i++)
-                for (int j = 0; j < SCREEN_HEIGHT; j++)
-                    SDL_RenderDrawPoint(ren, i, j);
-            //Update screen
-            SDL_RenderPresent(ren);
+        case 0:
+            return bgpal & 3;
+        case 1:
+            return (bgpal >> 2) & 3;
+        case 2:
+            return (bgpal >> 4) & 3;
+        case 3:
+            return (bgpal >> 6) & 3;
         }
     }
     void scanline()
     {
-        uint16_t mapoffs = bgmap ? 0x1C00 : 0x1800;
+        uint16_t mapoffs = (ctrl&0x8) ? 0x1C00 : 0x1800;
         mapoffs += (((line + scy) & 0xFF) >> 3) << 5; //divide line by 8, multiply by 32 coz 32 tiles in one line
         uint16_t lineoffs = scx >> 3;                 //divide by 8
         uint8_t y = (line + scy) & 0x7;
@@ -132,15 +131,15 @@ struct GPU
         uint8_t lb;
         uint8_t hb;
         uint16_t tile = vram[mapoffs + lineoffs];
-        if (bgtile == 1 && tile < 128)
+        if ((ctrl&0x10)  == 1 && tile < 128)
             tile += 256;
         for (int i = 0; i < 160; i++)
         {
             // 0-blk,1-darkgry,2-lightgray,3-white
             lb = vram[(tile << 4) + (y << 1)];
             hb = vram[(tile << 4) + (y << 1) + 1];
-            int v = ((lb >> (7-x)) & 1)*2 + (((hb >> (7-x)) & 1));//doubt lb actuallly lb?
-            switch (v)
+            int v = ((lb >> (7 - x)) & 1) * 2 + (((hb >> (7 - x)) & 1)); //doubt lb actuallly lb?
+            switch (palMap(v))
             {
             case 0:
                 SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -155,9 +154,9 @@ struct GPU
                 SDL_SetRenderDrawColor(ren, 0, 0, 0, 0xFF);
                 break;
             }
-            //SDL_Rect fillRect = { i*2, line*2, i*2+1, line*2+1 };
-            SDL_RenderDrawPoint(ren, i, line);//single point
-            //SDL_RenderFillRect(ren, &fillRect );
+            //SDL_Rect fillRect = { i*2, line*2, i*2+1, line*2+1 };//scale 200%
+            SDL_RenderDrawPoint(ren, i, line); //single point
+            //SDL_RenderFillRect(ren, &fillRect );//scale 200% 4px:1px
             // When this tile ends, read another
             x++;
             if (x == 8)
@@ -165,42 +164,13 @@ struct GPU
                 x = 0;
                 lineoffs = (lineoffs + 1) & 31;
                 tile = vram[mapoffs + lineoffs];
-                if (bgtile == 1 && tile < 128)
+                if ((ctrl&0x10)  == 1 && tile < 128)
                     tile += 256;
             }
         }
     }
     void renScreen()
     {
-        for (int i = 0; i < 16; i++)
-        {
-            //for (int j = 0; j < 32; j++)
-                std::cout << "0x" << unsigned(vram[ i]) << " ";
-            
-        }std::cout << std::endl;
-        std::cout << "\nTile Map 0:\n";
-        int base = 0x1800;
-        for (int i = 0; i < 32; i++)
-        {
-            for (int j = 0; j < 32; j++)
-                std::cout << "0x" << unsigned(vram[base + i * 32 + j]) << " ";
-            std::cout << std::endl;
-        }
-        for (int t = 0; t < 0x1A; t++)
-        {
-            std::cout << "\nTile " << t << ":\n";
-            for (int i = 0; i < 8; i++)
-            {
-                int lB = vram[(t << 4) + (i << 1)];
-                int hB = vram[(t << 4) + (i << 1) + 1];
-                for (int j = 0; j < 8; j++)
-                {   int lb = ((lB >> (7-j)) & 1);
-                    int hb = ((hB >> (7-j)) & 1);
-                    std::cout << hb << lb << ",";
-                }
-                std::cout << std::endl;
-            }
-        }
         //std::cin >> base;
         //Event handler
         SDL_Event e;
@@ -221,5 +191,54 @@ struct GPU
             }
         }
         SDL_RenderPresent(ren);
+    }
+    uint8_t rd(uint16_t add)
+    {
+        switch (add & 0xFF)
+        {
+        case 0x40:
+            return ctrl;
+        case 0x42:
+
+            return scy;
+        case 0x43:
+            return scx;
+        case 0x44:
+            return line;
+        case 0x47:
+        return bgpal;
+        default:
+            std::cout << "GPU Read error\n";
+            return 0;
+        }
+    }
+    void wt(uint16_t add, uint8_t data)
+    {
+        switch (add & 0xFF)
+        {
+        case 0x40:
+            ctrl=data;
+            break;
+        case 0x42:
+            scy = data;
+            break;
+        case 0x43:
+            scx = data;
+            break;
+        case 0x47:
+            bgpal = data;
+            break;
+        default:
+            std::cout << "GPU Write error\n";
+            break;
+        }
+    }
+    void printState(){
+        std::cout << "GPU:\n";
+        std::cout << "LCD & GPU Control:" << unsigned(ctrl) << "\n";
+        std::cout << "Scroll Y:" << unsigned(scy) << "\n";
+        std::cout << "Scroll X:" << unsigned(scx) << "\n";
+        std::cout << "Current scanline:" << unsigned(line) << "\n";
+        std::cout << "BG palette:" << unsigned(ctrl) << "\n";
     }
 } gpu;

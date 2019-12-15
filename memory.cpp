@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
-#include<stdio.h>
-#include<fstream>
+#include <stdio.h>
+#include <fstream>
 #include <stdint.h>
 #include "gpu.cpp"
 using namespace std;
@@ -31,20 +31,21 @@ struct MMU
     void reset()
     {
         b = 1;
-        load("opus5.gb");
     }
     void load(char *name)
     {
         char c;
         ifstream fin(name);
-	    if (!fin) {
-            cout<<"Error Opening ROM\n";
+        if (!fin)
+        {
+            cout << "Error Opening ROM\n";
             exit(-1);
-	    }
-        int i=0;
-        while(i<32768){
+        }
+        int i = 0;
+        while (i < 32768)
+        {
             fin.get(c);
-            rom[i++]=c;
+            rom[i++] = c;
         }
     }
     uint8_t read8(uint16_t add)
@@ -56,7 +57,7 @@ struct MMU
             {
                 if (add < 0x0100)
                     return bios[add];
-            } 
+            }
             return rom[add];
         case 0x1000:
         case 0x2000:
@@ -87,9 +88,18 @@ struct MMU
                 else
                     return 0;
             case 0xF00:
-                if (add < 0xFF80)
-                    //INPUT MAP
-                    return 0;
+                if (add < 0xFF80) //Memory MAP
+                    switch (add & 0xF0)
+                    {
+                    case 0x40:
+                    case 0x50:
+                    case 0x60:
+                    case 0x70: //GPU reg
+                        return gpu.rd(add);
+                    default:
+                        return 0;
+                    }
+
                 else
                     return zram[add & 0xFF];
             default:
@@ -119,7 +129,7 @@ struct MMU
             break;
         case 0x8000:
         case 0x9000:
-            gpu.vram[add & 0x1FFF] = data;//??
+            gpu.vram[add & 0x1FFF] = data; //??
             break;
         case 0xA000:
         case 0xB000:
@@ -138,9 +148,19 @@ struct MMU
                     gpu.oam[add & 0xFF] = data; //not complete
                 break;
             case 0xF00:
-                if (add < 0xFF80)
-                    //INPUT MAP
-                    break;
+                if (add < 0xFF80) //Memory MAP
+                    switch (add & 0xF0)
+                    {
+                    case 0x40:
+                    case 0x50:
+                    case 0x60:
+                    case 0x70: //GPU reg
+                        gpu.wt(add, data);
+
+                    default:
+                        break;
+                    }
+
                 else
                     zram[add & 0xFF] = data;
                 break;
@@ -155,5 +175,27 @@ struct MMU
         write8(add, data & 0xFF);
         write8(add + 1, ((data & 0xFF00) >> 8));
         return;
+    }
+    void dump()
+    {
+        ofstream fout("memory.txt");
+        if (!fout)
+        {
+            cout << "Error Opening File\n";
+            exit(-1);
+        }
+        int hB = 0;
+        fout << hex << uppercase;
+        while (hB <= 0xFF)
+        {
+            fout << hB << ":\n";
+            for (int hb = 0; hb <= 0xF; hb++)
+            {
+                for (int lb = 0; lb <= 0xF; lb++)
+                    fout << " " << unsigned(read8((hB << 8) +(hb<<4) +lb));
+                fout << endl;
+            }
+            hB++;
+        }
     }
 } mmu;

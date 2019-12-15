@@ -6,8 +6,8 @@ using namespace std;
 struct CPU
 {
     registers reg;
-    int m, m_tot;
-    int t, t_tot;
+    int m, t;
+    long m_tot, t_tot;
     int hlt, ie;
     //0x Instructions
     void nop()
@@ -1998,7 +1998,7 @@ struct CPU
     //Fx Instructions
     void lda_HN()
     {
-        reg.a = mmu.read8(0xFF00 + mmu.read8(reg.pc));
+        reg.a = mmu.read8(0xFF00 +mmu.read8(reg.pc) );
         reg.pc++;
         m = 3;
     }
@@ -2008,7 +2008,11 @@ struct CPU
         reg.sp += 2;
         m = 3;
     }
-    //0xF2 not defined
+    void lda_HC()
+    {
+        reg.a = mmu.read8(0xFF00 +reg.c );
+        m = 2;
+    }
     void di()
     {
         ie = 0;
@@ -2088,25 +2092,21 @@ struct CPU
     //Implementation and Mapping
     void printState()
     {
-        cout << "a:" << hex << uppercase << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
-        //cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
-        //cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
-        //cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
+        cout << "CPU:\n";
+        cout << "a:"  << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
+        cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
+        cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
+        cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
         cout << "pc:" << reg.pc << "\tsp:" << reg.sp << "\n";
-        //cout << "Flags\n";
         cout << "z:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\n";
-        cout << "Time passed:" << dec << t_tot / 1000 << " ms" << endl;
-        //cout << "Cycles passed:" << m_tot << hex << endl;
+        cout << "Time passed:" << dec << t_tot / 1000 << " ms" << hex << endl;
     }
     void reset()
     {
         reg.reset();
-        mmu.reset();
-        gpu.reset();
         m = t = m_tot = t_tot = hlt = 0;
         ie = 1;
         cout << hex << uppercase << "Reset\n";
-        fetchExecute();
     }
     void gpuStep()
     {
@@ -2178,7 +2178,8 @@ struct CPU
             //printState();
             if (t_tot > 500000)
             {
-                int i;cin>>i;
+                int i;
+                cin >> i;
                 break;
             } //bypass infinite loop
         }
@@ -3132,7 +3133,10 @@ struct CPU
             cout << "POP AF\n";
             popaf();
             break;
-            //F2 not defined
+        case 0xF2:
+            cout << "LD A,[HC]\n";
+            lda_HC();
+            break;
         case 0xF3:
             cout << "DI\n";
             di();
