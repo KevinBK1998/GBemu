@@ -12,7 +12,7 @@ void step(){
 			mmu.b = 0;
 		}
 		uint8_t op = mmu.read8(cpu.reg.pc++);
-		cpu.map(op);
+		cpu.mapc(op);
 		cpu.m_tot += cpu.m;
 		cpu.t_tot += cpu.t;
 		cpu.gpuStep();

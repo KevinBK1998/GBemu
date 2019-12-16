@@ -4,7 +4,6 @@ void reset()
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("red.gb");
 }
 void step(){
 	if (cpu.reg.pc > 0x0100)
@@ -33,8 +32,10 @@ void floop(){
 }
 int main(int argc, char *args[])
 {
-	char ch;
+	char ch,name[15];
 	reset();
+	cin>>name;
+	mmu.load(name);
 	do
 	{
 		cin >> ch;

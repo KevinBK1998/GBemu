@@ -69,7 +69,7 @@ struct CPU
             reg.f |= 0x80;
         m = 1;
     }
-    void ldN_sp()
+    void ldNN_sp()
     {
         //LD [nnnn],SP
         mmu.write16(mmu.read16(reg.pc), reg.sp);
@@ -1998,7 +1998,7 @@ struct CPU
     //Fx Instructions
     void lda_HN()
     {
-        reg.a = mmu.read8(0xFF00 +mmu.read8(reg.pc) );
+        reg.a = mmu.read8(0xFF00 + mmu.read8(reg.pc));
         reg.pc++;
         m = 3;
     }
@@ -2010,7 +2010,7 @@ struct CPU
     }
     void lda_HC()
     {
-        reg.a = mmu.read8(0xFF00 +reg.c );
+        reg.a = mmu.read8(0xFF00 + reg.c);
         m = 2;
     }
     void di()
@@ -2089,11 +2089,17 @@ struct CPU
         reg.pc = 0x0038;
         m = 3;
     }
+    //Unknown
+    void ldHL_HL()
+    {
+        mmu.write8(reg.gethl(), mmu.read8(reg.gethl()));
+        m = 3;
+    }
     //Implementation and Mapping
     void printState()
     {
         cout << "CPU:\n";
-        cout << "a:"  << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
+        cout << "a:" << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
         cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
         cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
         cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
@@ -2136,7 +2142,6 @@ struct CPU
                 gpu.line++;
                 if (gpu.line == 153)
                 { //if vblank done go to oam(repeat)
-                    cout << "VBLANK\n";
                     gpu.mode = 2;
                     gpu.line = 0;
                 }
@@ -2154,6 +2159,7 @@ struct CPU
             { //if vram done scanline and enter hblank
                 gpu.mode = 0;
                 gpu.clk = 0;
+                if(gpu.ctrl&0x80)
                 gpu.scanline();
             }
             break;
@@ -2184,7 +2190,7 @@ struct CPU
             } //bypass infinite loop
         }
     }
-    void map(uint8_t op)
+    void mapc(uint8_t op)
     {
         switch (op)
         {
@@ -2222,7 +2228,7 @@ struct CPU
             break;
         case 0x08:
             cout << "LD [NN],SP\n";
-            ldN_sp();
+            ldNN_sp();
             break;
         case 0x09:
             cout << "ADD HL,BC\n";
@@ -2862,35 +2868,35 @@ struct CPU
             and_a();
             break;
         case 0xA8:
-            cout << "ADC A,B\n";
+            cout << "XOR A,B\n";
             xor_b();
             break;
         case 0xA9:
-            cout << "ADC A,C\n";
+            cout << "XOR A,C\n";
             xor_c();
             break;
         case 0xAA:
-            cout << "ADC A,D\n";
+            cout << "XOR A,D\n";
             xor_d();
             break;
         case 0xAB:
-            cout << "ADC A,E\n";
+            cout << "XOR A,E\n";
             xor_e();
             break;
         case 0xAC:
-            cout << "ADC A,H\n";
+            cout << "XOR A,H\n";
             xor_h();
             break;
         case 0xAD:
-            cout << "ADC A,L\n";
+            cout << "XOR A,L\n";
             xor_l();
             break;
         case 0xAE:
-            cout << "ADC A,[HL]\n";
+            cout << "XOR A,[HL]\n";
             xor_HL();
             break;
         case 0xAF:
-            cout << "ADC A,A\n";
+            cout << "XOR A,A\n";
             xor_a();
             break;
         case 0xB0:
@@ -2926,35 +2932,35 @@ struct CPU
             or_a();
             break;
         case 0xB8:
-            cout << "ADC A,B\n";
+            cout << "CP B\n";
             cp_b();
             break;
         case 0xB9:
-            cout << "ADC A,C\n";
+            cout << "CP C\n";
             cp_c();
             break;
         case 0xBA:
-            cout << "ADC A,D\n";
+            cout << "CP D\n";
             cp_d();
             break;
         case 0xBB:
-            cout << "ADC A,E\n";
+            cout << "CP E\n";
             cp_e();
             break;
         case 0xBC:
-            cout << "ADC A,H\n";
+            cout << "CP H\n";
             cp_h();
             break;
         case 0xBD:
-            cout << "ADC A,L\n";
+            cout << "CP L\n";
             cp_l();
             break;
         case 0xBE:
-            cout << "ADC A,[HL]\n";
+            cout << "CP [HL]\n";
             cp_HL();
             break;
         case 0xBF:
-            cout << "ADC A,A\n";
+            cout << "CP A\n";
             cp_a();
             break;
         case 0xC0:
@@ -3095,7 +3101,7 @@ struct CPU
             pushhl();
             break;
         case 0xE6:
-            cout << "AND A,N\n";
+            cout << "AND N\n";
             and_n();
             break;
         case 0xE7:
@@ -3147,7 +3153,7 @@ struct CPU
             pushaf();
             break;
         case 0xF6:
-            cout << "OR A,N\n";
+            cout << "OR N\n";
             or_n();
             break;
         case 0xF7:
@@ -3171,7 +3177,7 @@ struct CPU
             ei();
             break;
         case 0xFE:
-            cout << "CP A,N\n";
+            cout << "CP N\n";
             cp_n();
             break;
         case 0xFF:
@@ -3184,17 +3190,1309 @@ struct CPU
         }
         t = 4 * m;
     }
+    void map(uint8_t op)
+    {
+        switch (op)
+        {
+        case 0x00:
+            nop();
+            break;
+        case 0x01:
+            ldbc();
+            break;
+        case 0x02:
+            ldBC_a();
+            break;
+        case 0x03:
+            inc_bc();
+            break;
+        case 0x04:
+            inc_b();
+            break;
+        case 0x05:
+            dec_b();
+            break;
+        case 0x06:
+            ldb_n();
+            break;
+        case 0x07:
+            rlc_a();
+            break;
+        case 0x08:
+            ldNN_sp();
+            break;
+        case 0x09:
+            addhl_bc();
+            break;
+        case 0x0A:
+            ld_BC();
+            break;
+        case 0x0B:
+            dec_bc();
+            break;
+        case 0x0C:
+            inc_c();
+            break;
+        case 0x0D:
+            dec_c();
+            break;
+        case 0x0E:
+            ldc_n();
+            break;
+        case 0x0F:
+            rrc_a();
+            break;
+        case 0x10:
+            //stop();
+            ND();
+            break;
+        case 0x11:
+            ldde();
+            break;
+        case 0x12:
+            ldDE_a();
+            break;
+        case 0x13:
+            inc_de();
+            break;
+        case 0x14:
+            inc_d();
+            break;
+        case 0x15:
+            dec_d();
+            break;
+        case 0x16:
+            ldd_n();
+            break;
+        case 0x17:
+            rl_a();
+            break;
+        case 0x18:
+            jr_n();
+            break;
+        case 0x19:
+            addhl_de();
+            break;
+        case 0x1A:
+            ld_DE();
+            break;
+        case 0x1B:
+            dec_de();
+            break;
+        case 0x1C:
+            inc_e();
+            break;
+        case 0x1D:
+            dec_e();
+            break;
+        case 0x1E:
+            lde_n();
+            break;
+        case 0x1F:
+            rr_a();
+            break;
+        case 0x20:
+            jrnz_n();
+            break;
+        case 0x21:
+            ldhl();
+            break;
+        case 0x22:
+            ldHLi_a();
+            break;
+        case 0x23:
+            inc_hl();
+            break;
+        case 0x24:
+            inc_h();
+            break;
+        case 0x25:
+            dec_h();
+            break;
+        case 0x26:
+            ldh_n();
+            break;
+        case 0x27:
+            daa();
+            break;
+        case 0x28:
+            jrz_n();
+            break;
+        case 0x29:
+            addhl_hl();
+            break;
+        case 0x2A:
+            ld_HLi();
+            break;
+        case 0x2B:
+            dec_hl();
+            break;
+        case 0x2C:
+            inc_l();
+            break;
+        case 0x2D:
+            dec_l();
+            break;
+        case 0x2E:
+            ldl_n();
+            break;
+        case 0x2F:
+            cpl();
+            break;
+        case 0x30:
+            jrnc_n();
+            break;
+        case 0x31:
+            ldsp();
+            break;
+        case 0x32:
+            ldHLd_a();
+            break;
+        case 0x33:
+            inc_sp();
+            break;
+        case 0x34:
+            inc_HL();
+            break;
+        case 0x35:
+            dec_HL();
+            break;
+        case 0x36:
+            ldHL_n();
+            break;
+        case 0x37:
+            scf();
+            break;
+        case 0x38:
+            jrc_n();
+            break;
+        case 0x39:
+            addhl_sp();
+            break;
+        case 0x3A:
+            ld_HLd();
+            break;
+        case 0x3B:
+            dec_sp();
+            break;
+        case 0x3C:
+            inc_a();
+            break;
+        case 0x3D:
+            dec_a();
+            break;
+        case 0x3E:
+            ld_n();
+            break;
+        case 0x3F:
+            ccf();
+            break;
+        case 0x40:
+            ldb_b();
+            break;
+        case 0x41:
+            ldb_c();
+            break;
+        case 0x42:
+            ldb_d();
+            break;
+        case 0x43:
+            ldb_e();
+            break;
+        case 0x44:
+            ldb_h();
+            break;
+        case 0x45:
+            ldb_l();
+            break;
+        case 0x46:
+            ldb_HL();
+            break;
+        case 0x47:
+            ldb_a();
+            break;
+        case 0x48:
+            ldc_b();
+            break;
+        case 0x49:
+            ldc_c();
+            break;
+        case 0x4A:
+            ldc_d();
+            break;
+        case 0x4B:
+            ldc_e();
+            break;
+        case 0x4C:
+            ldc_h();
+            break;
+        case 0x4D:
+            ldc_l();
+            break;
+        case 0x4E:
+            ldc_HL();
+            break;
+        case 0x4F:
+            ldc_a();
+            break;
+        case 0x50:
+            ldd_b();
+            break;
+        case 0x51:
+            ldd_c();
+            break;
+        case 0x52:
+            ldd_d();
+            break;
+        case 0x53:
+            ldd_e();
+            break;
+        case 0x54:
+            ldd_h();
+            break;
+        case 0x55:
+            ldd_l();
+            break;
+        case 0x56:
+            ldd_HL();
+            break;
+        case 0x57:
+            ldd_a();
+            break;
+        case 0x58:
+            lde_b();
+            break;
+        case 0x59:
+            lde_c();
+            break;
+        case 0x5A:
+            lde_d();
+            break;
+        case 0x5B:
+            lde_e();
+            break;
+        case 0x5C:
+            lde_h();
+            break;
+        case 0x5D:
+            lde_l();
+            break;
+        case 0x5E:
+            lde_HL();
+            break;
+        case 0x5F:
+            lde_a();
+            break;
+        case 0x60:
+            ldh_b();
+            break;
+        case 0x61:
+            ldh_c();
+            break;
+        case 0x62:
+            ldh_d();
+            break;
+        case 0x63:
+            ldh_e();
+            break;
+        case 0x64:
+            ldh_h();
+            break;
+        case 0x65:
+            ldh_l();
+            break;
+        case 0x66:
+            ldh_HL();
+            break;
+        case 0x67:
+            ldh_a();
+            break;
+        case 0x68:
+            ldl_b();
+            break;
+        case 0x69:
+            ldl_c();
+            break;
+        case 0x6A:
+            ldl_d();
+            break;
+        case 0x6B:
+            ldl_e();
+            break;
+        case 0x6C:
+            ldl_h();
+            break;
+        case 0x6D:
+            ldl_l();
+            break;
+        case 0x6E:
+            ldl_HL();
+            break;
+        case 0x6F:
+            ldl_a();
+            break;
+        case 0x70:
+            ldHL_b();
+            break;
+        case 0x71:
+            ldHL_c();
+            break;
+        case 0x72:
+            ldHL_d();
+            break;
+        case 0x73:
+            ldHL_e();
+            break;
+        case 0x74:
+            ldHL_h();
+            break;
+        case 0x75:
+            ldHL_l();
+            break;
+        case 0x76:
+            halt();
+            break;
+        case 0x77:
+            ldHL_a();
+            break;
+        case 0x78:
+            lda_b();
+            break;
+        case 0x79:
+            lda_c();
+            break;
+        case 0x7A:
+            lda_d();
+            break;
+        case 0x7B:
+            lda_e();
+            break;
+        case 0x7C:
+            lda_h();
+            break;
+        case 0x7D:
+            lda_l();
+            break;
+        case 0x7E:
+            lda_HL();
+            break;
+        case 0x7F:
+            lda_a();
+            break;
+        case 0x80:
+            add_b();
+            break;
+        case 0x81:
+            add_c();
+            break;
+        case 0x82:
+            add_d();
+            break;
+        case 0x83:
+            add_e();
+            break;
+        case 0x84:
+            add_h();
+            break;
+        case 0x85:
+            add_l();
+            break;
+        case 0x86:
+            add_HL();
+            break;
+        case 0x87:
+            add_a();
+            break;
+        case 0x88:
+            adc_b();
+            break;
+        case 0x89:
+            adc_c();
+            break;
+        case 0x8A:
+            adc_d();
+            break;
+        case 0x8B:
+            adc_e();
+            break;
+        case 0x8C:
+            adc_h();
+            break;
+        case 0x8D:
+            adc_l();
+            break;
+        case 0x8E:
+            adc_HL();
+            break;
+        case 0x8F:
+            adc_a();
+            break;
+        case 0x90:
+            sub_b();
+            break;
+        case 0x91:
+            sub_c();
+            break;
+        case 0x92:
+            sub_d();
+            break;
+        case 0x93:
+            sub_e();
+            break;
+        case 0x94:
+            sub_h();
+            break;
+        case 0x95:
+            sub_l();
+            break;
+        case 0x96:
+            sub_HL();
+            break;
+        case 0x97:
+            sub_a();
+            break;
+        case 0x98:
+            sbc_b();
+            break;
+        case 0x99:
+            sbc_c();
+            break;
+        case 0x9A:
+            sbc_d();
+            break;
+        case 0x9B:
+            sbc_e();
+            break;
+        case 0x9C:
+            sbc_h();
+            break;
+        case 0x9D:
+            sbc_l();
+            break;
+        case 0x9E:;
+            sbc_HL();
+            break;
+        case 0x9F:
+            sbc_a();
+            break;
+        case 0xA0:
+            and_b();
+            break;
+        case 0xA1:
+            and_c();
+            break;
+        case 0xA2:
+            and_d();
+            break;
+        case 0xA3:
+            and_e();
+            break;
+        case 0xA4:
+            and_h();
+            break;
+        case 0xA5:
+            and_l();
+            break;
+        case 0xA6:
+            and_HL();
+            break;
+        case 0xA7:
+            and_a();
+            break;
+        case 0xA8:
+            xor_b();
+            break;
+        case 0xA9:
+            xor_c();
+            break;
+        case 0xAA:
+            xor_d();
+            break;
+        case 0xAB:
+            xor_e();
+            break;
+        case 0xAC:
+            xor_h();
+            break;
+        case 0xAD:
+            xor_l();
+            break;
+        case 0xAE:
+            xor_HL();
+            break;
+        case 0xAF:
+            xor_a();
+            break;
+        case 0xB0:
+            or_b();
+            break;
+        case 0xB1:
+            or_c();
+            break;
+        case 0xB2:
+            or_d();
+            break;
+        case 0xB3:
+            or_e();
+            break;
+        case 0xB4:
+            or_h();
+            break;
+        case 0xB5:
+            or_l();
+            break;
+        case 0xB6:
+            or_HL();
+            break;
+        case 0xB7:
+            or_a();
+            break;
+        case 0xB8:
+            cp_b();
+            break;
+        case 0xB9:
+            cp_c();
+            break;
+        case 0xBA:
+            cp_d();
+            break;
+        case 0xBB:
+            cp_e();
+            break;
+        case 0xBC:
+            cp_h();
+            break;
+        case 0xBD:
+            cp_l();
+            break;
+        case 0xBE:
+            cp_HL();
+            break;
+        case 0xBF:
+            cp_a();
+            break;
+        case 0xC0:
+            retnz();
+            break;
+        case 0xC1:
+            popbc();
+            break;
+        case 0xC2:
+            jpnz_nn();
+            break;
+        case 0xC3:
+            jp_nn();
+            break;
+        case 0xC4:
+            callnz_nn();
+            break;
+        case 0xC5:
+            pushbc();
+            break;
+        case 0xC6:
+            add_n();
+            break;
+        case 0xC7:
+            rst_0();
+            break;
+        case 0xC8:
+            retz();
+            break;
+        case 0xC9:
+            ret();
+            break;
+        case 0xCA:
+            jpz_nn();
+            break;
+        case 0xCB:
+            CB();
+            break;
+        case 0xCC:
+            callz_nn();
+            break;
+        case 0xCD:
+            call_nn();
+            break;
+        case 0xCE:
+            adc_n();
+            break;
+        case 0xCF:
+            rst_8();
+            break;
+        case 0xD0:
+            retnc();
+            break;
+        case 0xD1:
+            popde();
+            break;
+        case 0xD2:
+            jpnc_nn();
+            break;
+        //D3 not defined
+        case 0xD4:
+            callnc_nn();
+            break;
+        case 0xD5:
+            pushde();
+            break;
+        case 0xD6:
+            sub_n();
+            break;
+        case 0xD7:
+            rst_10();
+            break;
+        case 0xD8:
+            retc();
+            break;
+        case 0xD9:
+            reti();
+            break;
+        case 0xDA:
+            jpc_nn();
+            break;
+            //DB not defined
+        case 0xDC:
+            callc_nn();
+            break;
+            //DD not defined
+        case 0xDE:
+            sbc_n();
+            break;
+        case 0xDF:
+            rst_18();
+            break;
+        case 0xE0:
+            ldHN_a();
+            break;
+        case 0xE1:
+            pophl();
+            break;
+        case 0xE2:
+            ldHC_a();
+            break;
+            //E3 not defined
+            //E4 not defined
+        case 0xE5:
+            pushhl();
+            break;
+        case 0xE6:
+            and_n();
+            break;
+        case 0xE7:
+            ldHN_a();
+            break;
+        case 0xE8:
+            addsp_n();
+            break;
+        case 0xE9:
+            jp_HL();
+            break;
+        case 0xEA:
+            ldNN_a();
+            break;
+            //EB not defined
+            //EC not defined
+            //ED not defined
+        case 0xEE:
+            xor_n();
+            break;
+        case 0xEF:
+            rst_28();
+            break;
+        case 0xF0:
+            lda_HN();
+            break;
+        case 0xF1:
+            popaf();
+            break;
+        case 0xF2:
+            lda_HC();
+            break;
+        case 0xF3:
+            di();
+            break;
+            //F4 not defined
+        case 0xF5:
+            pushaf();
+            break;
+        case 0xF6:
+            or_n();
+            break;
+        case 0xF7:
+            rst_30();
+            break;
+        case 0xF8:
+            ldhl_sp_n();
+            break;
+        case 0xF9:
+            ldsp_hl();
+            break;
+        case 0xFA:
+            ld_NN();
+            break;
+        case 0xFB:
+            ei();
+            break;
+        case 0xFE:
+            cp_n();
+            break;
+        case 0xFF:
+            rst_38();
+            break;
+        default:
+            cout << "Unknown Instruction 0x" << unsigned(op) << endl;
+            exit(1);
+        }
+        t = 4 * m;
+    }
     void preMap(uint8_t op)
     {
         switch (op)
         {
+        case 0x10:
+            cout << "RL B\n";
+            rl_b();
+            break;
         case 0x11:
             cout << "RL C\n";
             rl_c();
             break;
+        case 0x12:
+            cout << "RL D\n";
+            rl_d();
+            break;
+        case 0x13:
+            cout << "RL E\n";
+            rl_e();
+            break;
+        case 0x14:
+            cout << "RL H\n";
+            rl_h();
+            break;
+        case 0x15:
+            cout << "RL L\n";
+            rl_l();
+            break;
+        case 0x16:
+            cout << "RL [HL]\n";
+            rl_HL();
+            break;
+        case 0x17:
+            cout << "RL A\n";
+            rl_a();
+            m++;//prefix decode cycle
+            break;
+        case 0x40:
+            cout << "BIT 0,B\n";
+            bit_b(0);
+            break;
+        case 0x41:
+            cout << "BIT 0,C\n";
+            bit_c(0);
+            break;
+        case 0x42:
+            cout << "BIT 0,D\n";
+            bit_d(0);
+            break;
+        case 0x43:
+            cout << "BIT 0,E\n";
+            bit_e(0);
+            break;
+        case 0x44:
+            cout << "BIT 0,H\n";
+            bit_h(0);
+            break;
+        case 0x45:
+            cout << "BIT 0,L\n";
+            bit_l(0);
+            break;
+        case 0x46:
+            cout << "BIT 0,[HL]\n";
+            bit_HL(0);
+            break;
+        case 0x47:
+            cout << "BIT 0,A\n";
+            bit_a(0);
+            break;
+        case 0x48:
+            cout << "BIT 1,B\n";
+            bit_b(1);
+            break;
+        case 0x49:
+            cout << "BIT 1,C\n";
+            bit_c(1);
+            break;
+        case 0x4A:
+            cout << "BIT 1,D\n";
+            bit_d(1);
+            break;
+        case 0x4B:
+            cout << "BIT 1,E\n";
+            bit_e(1);
+            break;
+        case 0x4C:
+            cout << "BIT 1,H\n";
+            bit_h(1);
+            break;
+        case 0x4D:
+            cout << "BIT 1,L\n";
+            bit_l(1);
+            break;
+        case 0x4E:
+            cout << "BIT 1,[HL]\n";
+            bit_HL(1);
+            break;
+        case 0x4F:
+            cout << "BIT 1,A\n";
+            bit_a(1);
+            break;
+        case 0x50:
+            cout << "BIT 2,B\n";
+            bit_b(2);
+            break;
+        case 0x51:
+            cout << "BIT 2,C\n";
+            bit_c(2);
+            break;
+        case 0x52:
+            cout << "BIT 2,D\n";
+            bit_d(2);
+            break;
+        case 0x53:
+            cout << "BIT 2,E\n";
+            bit_e(2);
+            break;
+        case 0x54:
+            cout << "BIT 2,H\n";
+            bit_h(2);
+            break;
+        case 0x55:
+            cout << "BIT 2,L\n";
+            bit_l(2);
+            break;
+        case 0x56:
+            cout << "BIT 2,[HL]\n";
+            bit_HL(2);
+            break;
+        case 0x57:
+            cout << "BIT 2,A\n";
+            bit_a(2);
+            break;
+        case 0x58:
+            cout << "BIT 3,B\n";
+            bit_b(3);
+            break;
+        case 0x59:
+            cout << "BIT 3,C\n";
+            bit_c(3);
+            break;
+        case 0x5A:
+            cout << "BIT 3,D\n";
+            bit_d(3);
+            break;
+        case 0x5B:
+            cout << "BIT 3,E\n";
+            bit_e(3);
+            break;
+        case 0x5C:
+            cout << "BIT 3,H\n";
+            bit_h(3);
+            break;
+        case 0x5D:
+            cout << "BIT 3,L\n";
+            bit_l(3);
+            break;
+        case 0x5E:
+            cout << "BIT 3,[HL]\n";
+            bit_HL(3);
+            break;
+        case 0x5F:
+            cout << "BIT 3,A\n";
+            bit_a(3);
+            break;
+        case 0x60:
+            cout << "BIT 4,B\n";
+            bit_b(4);
+            break;
+        case 0x61:
+            cout << "BIT 4,C\n";
+            bit_c(4);
+            break;
+        case 0x62:
+            cout << "BIT 4,D\n";
+            bit_d(4);
+            break;
+        case 0x63:
+            cout << "BIT 4,E\n";
+            bit_e(4);
+            break;
+        case 0x64:
+            cout << "BIT 4,H\n";
+            bit_h(4);
+            break;
+        case 0x65:
+            cout << "BIT 4,L\n";
+            bit_l(4);
+            break;
+        case 0x66:
+            cout << "BIT 4,[HL]\n";
+            bit_HL(4);
+            break;
+        case 0x67:
+            cout << "BIT 4,A\n";
+            bit_a(4);
+            break;
+        case 0x68:
+            cout << "BIT 5,B\n";
+            bit_b(5);
+            break;
+        case 0x69:
+            cout << "BIT 5,C\n";
+            bit_c(5);
+            break;
+        case 0x6A:
+            cout << "BIT 5,D\n";
+            bit_d(5);
+            break;
+        case 0x6B:
+            cout << "BIT 5,E\n";
+            bit_e(5);
+            break;
+        case 0x6C:
+            cout << "BIT 5,H\n";
+            bit_h(5);
+            break;
+        case 0x6D:
+            cout << "BIT 5,L\n";
+            bit_l(5);
+            break;
+        case 0x6E:
+            cout << "BIT 5,[HL]\n";
+            bit_HL(5);
+            break;
+        case 0x6F:
+            cout << "BIT 5,A\n";
+            bit_a(5);
+            break;
+        case 0x70:
+            cout << "BIT 6,B\n";
+            bit_b(6);
+            break;
+        case 0x71:
+            cout << "BIT 6,C\n";
+            bit_c(6);
+            break;
+        case 0x72:
+            cout << "BIT 6,D\n";
+            bit_d(6);
+            break;
+        case 0x73:
+            cout << "BIT 6,E\n";
+            bit_e(6);
+            break;
+        case 0x74:
+            cout << "BIT 6,H\n";
+            bit_h(6);
+            break;
+        case 0x75:
+            cout << "BIT 6,L\n";
+            bit_l(6);
+            break;
+        case 0x76:
+            cout << "BIT 6,[HL]\n";
+            bit_HL(6);
+            break;
+        case 0x77:
+            cout << "BIT 6,A\n";
+            bit_a(6);
+            break;
+        case 0x78:
+            cout << "BIT 7,B\n";
+            bit_b(7);
+            break;
+        case 0x79:
+            cout << "BIT 7,C\n";
+            bit_c(7);
+            break;
+        case 0x7A:
+            cout << "BIT 7,D\n";
+            bit_d(7);
+            break;
+        case 0x7B:
+            cout << "BIT 7,E\n";
+            bit_e(7);
+            break;
         case 0x7C:
             cout << "BIT 7,H\n";
-            bit7_h();
+            bit_h(7);
+            break;
+        case 0x7D:
+            cout << "BIT 7,L\n";
+            bit_l(7);
+            break;
+        case 0x7E:
+            cout << "BIT 7,[HL]\n";
+            bit_HL(7);
+            break;
+        case 0x7F:
+            cout << "BIT 7,A\n";
+            bit_a(7);
+            break;
+        case 0x80:
+            cout << "RES 0,B\n";
+            res_b(0);
+            break;
+        case 0x81:
+            cout << "RES 0,C\n";
+            res_c(0);
+            break;
+        case 0x82:
+            cout << "RES 0,D\n";
+            res_d(0);
+            break;
+        case 0x83:
+            cout << "RES 0,E\n";
+            res_e(0);
+            break;
+        case 0x84:
+            cout << "RES 0,H\n";
+            res_h(0);
+            break;
+        case 0x85:
+            cout << "RES 0,L\n";
+            res_l(0);
+            break;
+        case 0x86:
+            cout << "RES 0,[HL]\n";
+            res_HL(0);
+            break;
+        case 0x87:
+            cout << "RES 0,A\n";
+            res_a(0);
+            break;
+        case 0x88:
+            cout << "RES 1,B\n";
+            res_b(1);
+            break;
+        case 0x89:
+            cout << "RES 1,C\n";
+            res_c(1);
+            break;
+        case 0x8A:
+            cout << "RES 1,D\n";
+            res_d(1);
+            break;
+        case 0x8B:
+            cout << "RES 1,E\n";
+            res_e(1);
+            break;
+        case 0x8C:
+            cout << "RES 1,H\n";
+            res_h(1);
+            break;
+        case 0x8D:
+            cout << "RES 1,L\n";
+            res_l(1);
+            break;
+        case 0x8E:
+            cout << "RES 1,[HL]\n";
+            res_HL(1);
+            break;
+        case 0x8F:
+            cout << "RES 1,A\n";
+            res_a(1);
+            break;
+        case 0x90:
+            cout << "RES 2,B\n";
+            res_b(2);
+            break;
+        case 0x91:
+            cout << "RES 2,C\n";
+            res_c(2);
+            break;
+        case 0x92:
+            cout << "RES 2,D\n";
+            res_d(2);
+            break;
+        case 0x93:
+            cout << "RES 2,E\n";
+            res_e(2);
+            break;
+        case 0x94:
+            cout << "RES 2,H\n";
+            res_h(2);
+            break;
+        case 0x95:
+            cout << "RES 2,L\n";
+            res_l(2);
+            break;
+        case 0x96:
+            cout << "RES 2,[HL]\n";
+            res_HL(2);
+            break;
+        case 0x97:
+            cout << "RES 2,A\n";
+            res_a(2);
+            break;
+        case 0x98:
+            cout << "RES 3,B\n";
+            res_b(3);
+            break;
+        case 0x99:
+            cout << "RES 3,C\n";
+            res_c(3);
+            break;
+        case 0x9A:
+            cout << "RES 3,D\n";
+            res_d(3);
+            break;
+        case 0x9B:
+            cout << "RES 3,E\n";
+            res_e(3);
+            break;
+        case 0x9C:
+            cout << "RES 3,H\n";
+            res_h(3);
+            break;
+        case 0x9D:
+            cout << "RES 3,L\n";
+            res_l(3);
+            break;
+        case 0x9E:
+            cout << "RES 3,[HL]\n";
+            res_HL(3);
+            break;
+        case 0x9F:
+            cout << "RES 3,A\n";
+            res_a(3);
+            break;
+        case 0xA0:
+            cout << "RES 4,B\n";
+            res_b(4);
+            break;
+        case 0xA1:
+            cout << "RES 4,C\n";
+            res_c(4);
+            break;
+        case 0xA2:
+            cout << "RES 4,D\n";
+            res_d(4);
+            break;
+        case 0xA3:
+            cout << "RES 4,E\n";
+            res_e(4);
+            break;
+        case 0xA4:
+            cout << "RES 4,H\n";
+            res_h(4);
+            break;
+        case 0xA5:
+            cout << "RES 4,L\n";
+            res_l(4);
+            break;
+        case 0xA6:
+            cout << "RES 4,[HL]\n";
+            res_HL(4);
+            break;
+        case 0xA7:
+            cout << "RES 4,A\n";
+            res_a(4);
+            break;
+        case 0xA8:
+            cout << "RES 5,B\n";
+            res_b(5);
+            break;
+        case 0xA9:
+            cout << "RES 5,C\n";
+            res_c(5);
+            break;
+        case 0xAA:
+            cout << "RES 5,D\n";
+            res_d(5);
+            break;
+        case 0xAB:
+            cout << "RES 5,E\n";
+            res_e(5);
+            break;
+        case 0xAC:
+            cout << "RES 5,H\n";
+            res_h(5);
+            break;
+        case 0xAD:
+            cout << "RES 5,L\n";
+            res_l(5);
+            break;
+        case 0xAE:
+            cout << "RES 5,[HL]\n";
+            res_HL(5);
+            break;
+        case 0xAF:
+            cout << "RES 5,A\n";
+            res_a(5);
+            break;
+        case 0xB0:
+            cout << "RES 6,B\n";
+            res_b(6);
+            break;
+        case 0xB1:
+            cout << "RES 6,C\n";
+            res_c(6);
+            break;
+        case 0xB2:
+            cout << "RES 6,D\n";
+            res_d(6);
+            break;
+        case 0xB3:
+            cout << "RES 6,E\n";
+            res_e(6);
+            break;
+        case 0xB4:
+            cout << "RES 6,H\n";
+            res_h(6);
+            break;
+        case 0xB5:
+            cout << "RES 6,L\n";
+            res_l(6);
+            break;
+        case 0xB6:
+            cout << "RES 6,[HL]\n";
+            res_HL(6);
+            break;
+        case 0xB7:
+            cout << "RES 6,A\n";
+            res_a(6);
+            break;
+        case 0xB8:
+            cout << "RES 7,B\n";
+            res_b(7);
+            break;
+        case 0xB9:
+            cout << "RES 7,C\n";
+            res_c(7);
+            break;
+        case 0xBA:
+            cout << "RES 7,D\n";
+            res_d(7);
+            break;
+        case 0xBB:
+            cout << "RES 7,E\n";
+            res_e(7);
+            break;
+        case 0xBC:
+            cout << "RES 7,H\n";
+            res_h(7);
+            break;
+        case 0xBD:
+            cout << "RES 7,L\n";
+            res_l(7);
+            break;
+        case 0xBE:
+            cout << "RES 7,[HL]\n";
+            res_HL(7);
+            break;
+        case 0xBF:
+            cout << "RES 7,A\n";
+            res_a(7);
             break;
         default:
             cout << "Unknown Instruction 0xCB 0x" << unsigned(op) << endl;
@@ -3202,6 +4500,17 @@ struct CPU
         }
     }
     //1x Instructions
+    void rl_b()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x80) >> 3);
+        reg.b <<= 1;
+        reg.b += c;
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 2;
+    }
     void rl_c()
     {
         int c = ((reg.f & 0x10) != 0);
@@ -3211,15 +4520,169 @@ struct CPU
         reg.c += c;
         if (!reg.c)
             reg.f |= 0x80;
-        m = 1;
+        m = 2;
     }
-    //7x Instructions
-    void bit7_h()
+    void rl_d()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x80) >> 3);
+        reg.d <<= 1;
+        reg.d += c;
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }void rl_e()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x80) >> 3);
+        reg.e <<= 1;
+        reg.e += c;
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rl_h()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x80) >> 3);
+        reg.h <<= 1;
+        reg.h += c;
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rl_l()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x80) >> 3);
+        reg.l <<= 1;
+        reg.l += c;
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rl_HL()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        uint8_t HL=mmu.read8(reg.gethl());
+        reg.f = 0;
+        reg.f |= ((HL & 0x80) >> 3);
+        HL<<= 1;
+        HL += c;
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(),HL);
+        m = 4;
+    }
+    
+    //BIT
+    void bit_a(int n)
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.h >> 7))
+        if (!(reg.a >> n))
             reg.f |= 0x80;
         m = 2;
+    }
+    void bit_b(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(reg.b >> n))
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void bit_c(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(reg.c >> n))
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void bit_d(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(reg.d >> n))
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void bit_e(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(reg.e >> n))
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void bit_h(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(reg.h >> n))
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void bit_l(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(reg.l >> n))
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void bit_HL(int n)
+    {
+        reg.f &= 0x10;
+        reg.f |= 0x20;
+        if (!(mmu.read8(reg.gethl()) >> n))
+            reg.f |= 0x80;
+        m = 3;
+    }
+    //RES
+    void res_a(int n)
+    {
+        reg.a&=~(1<<n);
+        m = 2;
+    }
+    void res_b(int n)
+    {
+        reg.b&=~(1<<n);
+        m = 2;
+    }
+    void res_c(int n)
+    {
+        reg.c&=~(1<<n);
+        m = 2;
+    }
+    void res_d(int n)
+    {
+        reg.d&=~(1<<n);
+        m = 2;
+    }
+    void res_e(int n)
+    {
+        reg.e&=~(1<<n);
+        m = 2;
+    }
+    void res_h(int n)
+    {
+        reg.h&=~(1<<n);
+        m = 2;
+    }
+    void res_l(int n)
+    {
+        reg.l&=~(1<<n);
+        m = 2;
+    }
+    void res_HL(int n)
+    {
+        mmu.write8(reg.gethl(),mmu.read8(reg.gethl())&~(1<<n));
+        m = 4;
     }
 } cpu;

@@ -106,15 +106,15 @@ int main(int argc, char *args[])
 			SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0x00, 0xFF);
 			SDL_RenderDrawRect(gRenderer, &outlineRect);
 
-			//Draw light blue horizontal line
-			SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0xFF, 0xFF);
+			//Draw light yellow horizontal line
+			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0x00, 0xFF);
 			SDL_RenderDrawLine(gRenderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
 
 			//Draw vertical line of blue dots
-			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-			for (int i = 0; i < SCREEN_WIDTH; i ++)
-				for(int j=0;j<SCREEN_HEIGHT;j++)
-					SDL_RenderDrawPoint(gRenderer, i ,j);
+			SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
+			//for (int i = 0; i < SCREEN_WIDTH; i ++)
+				for(int j=0;j<SCREEN_HEIGHT;j+=4)
+					SDL_RenderDrawPoint(gRenderer, SCREEN_WIDTH / 2 ,j);
 
 			//Update screen
 			SDL_RenderPresent(gRenderer);

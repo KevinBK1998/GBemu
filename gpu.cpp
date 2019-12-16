@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <SDL2/SDL.h>
-const int SCREEN_WIDTH = 160;  //*2;
-const int SCREEN_HEIGHT = 144; //*2;
+const int SCREEN_WIDTH = 160;//*2;
+const int SCREEN_HEIGHT = 144;//*2;
 
 struct GPU
 {
@@ -133,24 +133,29 @@ struct GPU
         uint16_t tile = vram[mapoffs + lineoffs];
         if ((ctrl&0x10)  == 1 && tile < 128)
             tile += 256;
-        for (int i = 0; i < 160; i++)
-        {
+        for (int i = 0,f=0; i < 160; i++)
+        {//if(i==157)f=0;
             // 0-blk,1-darkgry,2-lightgray,3-white
             lb = vram[(tile << 4) + (y << 1)];
             hb = vram[(tile << 4) + (y << 1) + 1];
-            int v = ((lb >> (7 - x)) & 1) * 2 + (((hb >> (7 - x)) & 1)); //doubt lb actuallly lb?
+            int v = ((lb >> (7 - x)) & 1) + 2*(((hb >> (7 - x)) & 1));
             switch (palMap(v))
             {
             case 0:
+            if(f)
+                std::cout<<"0";
                 SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
                 break;
-            case 1:
+            case 1:if(f)
+                std::cout<<"1";
                 SDL_SetRenderDrawColor(ren, 192, 192, 192, 0xFF);
                 break;
-            case 2:
+            case 2:if(f)
+                std::cout<<"2";
                 SDL_SetRenderDrawColor(ren, 96, 96, 96, 0xFF);
                 break;
-            case 3:
+            case 3:if(f)
+                std::cout<<"3";
                 SDL_SetRenderDrawColor(ren, 0, 0, 0, 0xFF);
                 break;
             }
@@ -168,6 +173,7 @@ struct GPU
                     tile += 256;
             }
         }
+        //std::cout<<std::hex<<std::endl;
     }
     void renScreen()
     {
@@ -205,10 +211,8 @@ struct GPU
             return scx;
         case 0x44:
             return line;
-        case 0x47:
-        return bgpal;
         default:
-            std::cout << "GPU Read error\n";
+            std::cout << "GPU Read error 0x"<<add<<"\n";
             return 0;
         }
     }
@@ -229,7 +233,7 @@ struct GPU
             bgpal = data;
             break;
         default:
-            std::cout << "GPU Write error\n";
+            std::cout << "GPU Write error 0x"<<add<<"\n";
             break;
         }
     }
