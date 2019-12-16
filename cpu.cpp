@@ -65,6 +65,7 @@ struct CPU
         reg.f = 0;
         reg.f |= ((reg.a & 0x80) >> 3);
         reg.a <<= 1;
+        reg.a += ((reg.f & 0x10) != 0);
         if (!reg.a)
             reg.f |= 0x80;
         m = 1;
@@ -131,9 +132,10 @@ struct CPU
         reg.f = 0;
         reg.f |= ((reg.a & 0x1) << 4);
         reg.a >>= 1;
+        reg.a += ((reg.f & 0x10) << 3);
         if (!reg.a)
             reg.f |= 0x80;
-        m = 2;
+        m = 1;
     }
     //1x Instructions
     void stop()
@@ -266,7 +268,7 @@ struct CPU
         reg.a += (c << 7);
         if (!reg.a)
             reg.f |= 0x80;
-        m = 2;
+        m = 1;
     }
     //2x Instructions
     void jrnz_n()
@@ -2159,8 +2161,8 @@ struct CPU
             { //if vram done scanline and enter hblank
                 gpu.mode = 0;
                 gpu.clk = 0;
-                if(gpu.ctrl&0x80)
-                gpu.scanline();
+                if (gpu.ctrl & 0x80)
+                    gpu.scanline();
             }
             break;
         default:
@@ -2223,7 +2225,7 @@ struct CPU
             ldb_n();
             break;
         case 0x07:
-            cout << "RLC A\n";
+            cout << "SLAC A\n";
             rlc_a();
             break;
         case 0x08:
@@ -3106,7 +3108,7 @@ struct CPU
             break;
         case 0xE7:
             cout << "RST 0x20\n";
-            ldHN_a();
+            rst_20();
             break;
         case 0xE8:
             cout << "ADD SP,n(signed)\n";
@@ -3949,6 +3951,72 @@ struct CPU
     {
         switch (op)
         {
+        case 0x00:
+            cout << "RLC B\n";
+            rlc_b();
+            break;
+        case 0x01:
+            cout << "RLC C\n";
+            rlc_c();
+            break;
+        case 0x02:
+            cout << "RLC D\n";
+            rlc_d();
+            break;
+        case 0x03:
+            cout << "RLC E\n";
+            rlc_e();
+            break;
+        case 0x04:
+            cout << "RLC H\n";
+            rlc_h();
+            break;
+        case 0x05:
+            cout << "RLC L\n";
+            rlc_l();
+            break;
+        case 0x06:
+            cout << "RLC [HL]\n";
+            rlc_HL();
+            break;
+        case 0x07:
+            cout << "RLC A\n";
+            rlc_a();
+            m++; //prefix decode cycle
+            break;
+        case 0x08:
+            cout << "RRC B\n";
+            rrc_b();
+            break;
+        case 0x09:
+            cout << "RRC C\n";
+            rrc_c();
+            break;
+        case 0x0A:
+            cout << "RRC D\n";
+            rrc_d();
+            break;
+        case 0x0B:
+            cout << "RRC E\n";
+            rrc_e();
+            break;
+        case 0x0C:
+            cout << "RRC H\n";
+            rrc_h();
+            break;
+        case 0x0D:
+            cout << "RRC L\n";
+            rrc_l();
+            break;
+        case 0x0E:
+            cout << "RRC [HL]\n";
+            rrc_HL();
+            break;
+        case 0x0F:
+            cout << "RRC A\n";
+            rrc_a();
+            m++; //prefix decode cycle
+            break;
         case 0x10:
             cout << "RL B\n";
             rl_b();
@@ -3980,7 +4048,168 @@ struct CPU
         case 0x17:
             cout << "RL A\n";
             rl_a();
-            m++;//prefix decode cycle
+            m++; //prefix decode cycle
+            break;
+        case 0x18:
+            cout << "RR B\n";
+            rr_b();
+            break;
+        case 0x19:
+            cout << "RR C\n";
+            rr_c();
+            break;
+        case 0x1A:
+            cout << "RR D\n";
+            rr_d();
+            break;
+        case 0x1B:
+            cout << "RR E\n";
+            rr_e();
+            break;
+        case 0x1C:
+            cout << "RR H\n";
+            rr_h();
+            break;
+        case 0x1D:
+            cout << "RR L\n";
+            rr_l();
+            break;
+        case 0x1E:
+            cout << "RR [HL]\n";
+            rr_HL();
+            break;
+        case 0x1F:
+            cout << "RR A\n";
+            rr_a();
+            m++; //prefix decode cycle
+            break;
+        case 0x20:
+            cout << "SLA B\n";
+            sla_b();
+            break;
+        case 0x21:
+            cout << "SLA C\n";
+            sla_c();
+            break;
+        case 0x22:
+            cout << "SLA D\n";
+            sla_d();
+            break;
+        case 0x23:
+            cout << "SLA E\n";
+            sla_e();
+            break;
+        case 0x24:
+            cout << "SLA H\n";
+            sla_h();
+            break;
+        case 0x25:
+            cout << "SLA L\n";
+            sla_l();
+            break;
+        case 0x26:
+            cout << "SLA [HL]\n";
+            sla_HL();
+            break;
+        case 0x27:
+            cout << "SLA A\n";
+            sla_a();
+            break;
+        case 0x28:
+            cout << "SRA B\n";
+            sra_b();
+            break;
+        case 0x29:
+            cout << "SRA C\n";
+            sra_c();
+            break;
+        case 0x2A:
+            cout << "SRA D\n";
+            sra_d();
+            break;
+        case 0x2B:
+            cout << "SRA E\n";
+            sra_e();
+            break;
+        case 0x2C:
+            cout << "SRA H\n";
+            sra_h();
+            break;
+        case 0x2D:
+            cout << "SRA L\n";
+            sra_l();
+            break;
+        case 0x2E:
+            cout << "SRA [HL]\n";
+            sra_HL();
+            break;
+        case 0x2F:
+            cout << "SRA A\n";
+            sra_a();
+            break;
+        case 0x30:
+            cout << "SWAP B\n";
+            swap_b();
+            break;
+        case 0x31:
+            cout << "SWAP C\n";
+            swap_c();
+            break;
+        case 0x32:
+            cout << "SWAP D\n";
+            swap_d();
+            break;
+        case 0x33:
+            cout << "SWAP E\n";
+            swap_e();
+            break;
+        case 0x34:
+            cout << "SWAP H\n";
+            swap_h();
+            break;
+        case 0x35:
+            cout << "SWAP L\n";
+            swap_l();
+            break;
+        case 0x36:
+            cout << "SWAP [HL]\n";
+            swap_HL();
+            break;
+        case 0x37:
+            cout << "SWAP A\n";
+            swap_a();
+            break;
+        case 0x38:
+            cout << "SRL B\n";
+            srl_b();
+            break;
+        case 0x39:
+            cout << "SRL C\n";
+            srl_c();
+            break;
+        case 0x3A:
+            cout << "SRL D\n";
+            srl_d();
+            break;
+        case 0x3B:
+            cout << "SRL E\n";
+            srl_e();
+            break;
+        case 0x3C:
+            cout << "SRL H\n";
+            srl_h();
+            break;
+        case 0x3D:
+            cout << "SRL L\n";
+            srl_l();
+            break;
+        case 0x3E:
+            cout << "SRL [HL]\n";
+            srl_HL();
+            break;
+        case 0x3F:
+            cout << "SRL A\n";
+            srl_a();
             break;
         case 0x40:
             cout << "BIT 0,B\n";
@@ -4494,10 +4723,411 @@ struct CPU
             cout << "RES 7,A\n";
             res_a(7);
             break;
+        case 0xC0:
+            cout << "SET 0,B\n";
+            set_b(0);
+            break;
+        case 0xC1:
+            cout << "SET 0,C\n";
+            set_c(0);
+            break;
+        case 0xC2:
+            cout << "SET 0,D\n";
+            set_d(0);
+            break;
+        case 0xC3:
+            cout << "SET 0,E\n";
+            set_e(0);
+            break;
+        case 0xC4:
+            cout << "SET 0,H\n";
+            set_h(0);
+            break;
+        case 0xC5:
+            cout << "SET 0,L\n";
+            set_l(0);
+            break;
+        case 0xC6:
+            cout << "SET 0,[HL]\n";
+            set_HL(0);
+            break;
+        case 0xC7:
+            cout << "SET 0,A\n";
+            set_a(0);
+            break;
+        case 0xC8:
+            cout << "SET 1,B\n";
+            set_b(1);
+            break;
+        case 0xC9:
+            cout << "SET 1,C\n";
+            set_c(1);
+            break;
+        case 0xCA:
+            cout << "SET 1,D\n";
+            set_d(1);
+            break;
+        case 0xCB:
+            cout << "SET 1,E\n";
+            set_e(1);
+            break;
+        case 0xCC:
+            cout << "SET 1,H\n";
+            set_h(1);
+            break;
+        case 0xCD:
+            cout << "SET 1,L\n";
+            set_l(1);
+            break;
+        case 0xCE:
+            cout << "SET 1,[HL]\n";
+            set_HL(1);
+            break;
+        case 0xCF:
+            cout << "SET 1,A\n";
+            set_a(1);
+            break;
+        case 0xD0:
+            cout << "SET 2,B\n";
+            set_b(2);
+            break;
+        case 0xD1:
+            cout << "SET 2,C\n";
+            set_c(2);
+            break;
+        case 0xD2:
+            cout << "SET 2,D\n";
+            set_d(2);
+            break;
+        case 0xD3:
+            cout << "SET 2,E\n";
+            set_e(2);
+            break;
+        case 0xD4:
+            cout << "SET 2,H\n";
+            set_h(2);
+            break;
+        case 0xD5:
+            cout << "SET 2,L\n";
+            set_l(2);
+            break;
+        case 0xD6:
+            cout << "SET 2,[HL]\n";
+            set_HL(2);
+            break;
+        case 0xD7:
+            cout << "SET 2,A\n";
+            set_a(2);
+            break;
+        case 0xD8:
+            cout << "SET 3,B\n";
+            set_b(3);
+            break;
+        case 0xD9:
+            cout << "SET 3,C\n";
+            set_c(3);
+            break;
+        case 0xDA:
+            cout << "SET 3,D\n";
+            set_d(3);
+            break;
+        case 0xDB:
+            cout << "SET 3,E\n";
+            set_e(3);
+            break;
+        case 0xDC:
+            cout << "SET 3,H\n";
+            set_h(3);
+            break;
+        case 0xDD:
+            cout << "SET 3,L\n";
+            set_l(3);
+            break;
+        case 0xDE:
+            cout << "SET 3,[HL]\n";
+            set_HL(3);
+            break;
+        case 0xDF:
+            cout << "SET 3,A\n";
+            set_a(3);
+            break;
+        case 0xE0:
+            cout << "SET 4,B\n";
+            set_b(4);
+            break;
+        case 0xE1:
+            cout << "SET 4,C\n";
+            set_c(4);
+            break;
+        case 0xE2:
+            cout << "SET 4,D\n";
+            set_d(4);
+            break;
+        case 0xE3:
+            cout << "SET 4,E\n";
+            set_e(4);
+            break;
+        case 0xE4:
+            cout << "SET 4,H\n";
+            set_h(4);
+            break;
+        case 0xE5:
+            cout << "SET 4,L\n";
+            set_l(4);
+            break;
+        case 0xE6:
+            cout << "SET 4,[HL]\n";
+            set_HL(4);
+            break;
+        case 0xE7:
+            cout << "SET 4,A\n";
+            set_a(4);
+            break;
+        case 0xE8:
+            cout << "SET 5,B\n";
+            set_b(5);
+            break;
+        case 0xE9:
+            cout << "SET 5,C\n";
+            set_c(5);
+            break;
+        case 0xEA:
+            cout << "SET 5,D\n";
+            set_d(5);
+            break;
+        case 0xEB:
+            cout << "SET 5,E\n";
+            set_e(5);
+            break;
+        case 0xEC:
+            cout << "SET 5,H\n";
+            set_h(5);
+            break;
+        case 0xED:
+            cout << "SET 5,L\n";
+            set_l(5);
+            break;
+        case 0xEE:
+            cout << "SET 5,[HL]\n";
+            set_HL(5);
+            break;
+        case 0xEF:
+            cout << "SET 5,A\n";
+            set_a(5);
+            break;
+        case 0xF0:
+            cout << "SET 6,B\n";
+            set_b(6);
+            break;
+        case 0xF1:
+            cout << "SET 6,C\n";
+            set_c(6);
+            break;
+        case 0xF2:
+            cout << "SET 6,D\n";
+            set_d(6);
+            break;
+        case 0xF3:
+            cout << "SET 6,E\n";
+            set_e(6);
+            break;
+        case 0xF4:
+            cout << "SET 6,H\n";
+            set_h(6);
+            break;
+        case 0xF5:
+            cout << "SET 6,L\n";
+            set_l(6);
+            break;
+        case 0xF6:
+            cout << "SET 6,[HL]\n";
+            set_HL(6);
+            break;
+        case 0xF7:
+            cout << "SET 6,A\n";
+            set_a(6);
+            break;
+        case 0xF8:
+            cout << "SET 7,B\n";
+            set_b(7);
+            break;
+        case 0xF9:
+            cout << "SET 7,C\n";
+            set_c(7);
+            break;
+        case 0xFA:
+            cout << "SET 7,D\n";
+            set_d(7);
+            break;
+        case 0xFB:
+            cout << "SET 7,E\n";
+            set_e(7);
+            break;
+        case 0xFC:
+            cout << "SET 7,H\n";
+            set_h(7);
+            break;
+        case 0xFD:
+            cout << "SET 7,L\n";
+            set_l(7);
+            break;
+        case 0xFE:
+            cout << "SET 7,[HL]\n";
+            set_HL(7);
+            break;
+        case 0xFF:
+            cout << "SET 7,A\n";
+            set_a(7);
+            break;
         default:
             cout << "Unknown Instruction 0xCB 0x" << unsigned(op) << endl;
             exit(1);
         }
+    }
+    //0x Instructions
+    void rlc_b()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x80) >> 3);
+        reg.b <<= 1;
+        reg.b += ((reg.f & 0x10) != 0);
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rlc_c()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x80) >> 3);
+        reg.c <<= 1;
+        reg.c += ((reg.f & 0x10) != 0);
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rlc_d()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x80) >> 3);
+        reg.d <<= 1;
+        reg.d += ((reg.f & 0x10) != 0);
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rlc_e()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x80) >> 3);
+        reg.e <<= 1;
+        reg.e += ((reg.f & 0x10) != 0);
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rlc_h()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x80) >> 3);
+        reg.h <<= 1;
+        reg.h += ((reg.f & 0x10) != 0);
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rlc_l()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x80) >> 3);
+        reg.l <<= 1;
+        reg.l += ((reg.f & 0x10) != 0);
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rlc_HL()
+    {
+        uint8_t HL = mmu.read8(reg.gethl());
+        reg.f = 0;
+        reg.f |= ((HL & 0x80) >> 3);
+        HL <<= 1;
+        HL += ((reg.f & 0x10) != 0);
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(), HL);
+        m = 4;
+    }
+    void rrc_b()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x1) << 4);
+        reg.b >>= 1;
+        reg.b += ((reg.f & 0x10) << 3);
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rrc_c()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x1) << 4);
+        reg.c >>= 1;
+        reg.c += ((reg.f & 0x10) << 3);
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rrc_d()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x1) << 4);
+        reg.d >>= 1;
+        reg.d += ((reg.f & 0x10) << 3);
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rrc_e()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x1) << 4);
+        reg.e >>= 1;
+        reg.e += ((reg.f & 0x10) << 3);
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rrc_h()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x1) << 4);
+        reg.h >>= 1;
+        reg.h += ((reg.f & 0x10) << 3);
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rrc_l()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x1) << 4);
+        reg.l >>= 1;
+        reg.l += ((reg.f & 0x10) << 3);
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rrc_HL()
+    {
+        uint8_t HL = mmu.read8(reg.gethl());
+        reg.f = 0;
+        reg.f |= ((HL & 0x1) << 4);
+        HL >>= 1;
+        HL += ((reg.f & 0x10) << 3);
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(), HL);
+        m = 4;
     }
     //1x Instructions
     void rl_b()
@@ -4532,7 +5162,8 @@ struct CPU
         if (!reg.d)
             reg.f |= 0x80;
         m = 2;
-    }void rl_e()
+    }
+    void rl_e()
     {
         int c = ((reg.f & 0x10) != 0);
         reg.f = 0;
@@ -4568,17 +5199,410 @@ struct CPU
     void rl_HL()
     {
         int c = ((reg.f & 0x10) != 0);
-        uint8_t HL=mmu.read8(reg.gethl());
+        uint8_t HL = mmu.read8(reg.gethl());
         reg.f = 0;
         reg.f |= ((HL & 0x80) >> 3);
-        HL<<= 1;
+        HL <<= 1;
         HL += c;
         if (!HL)
             reg.f |= 0x80;
-        mmu.write8(reg.gethl(),HL);
+        mmu.write8(reg.gethl(), HL);
         m = 4;
     }
-    
+    void rr_b()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x1) << 4);
+        reg.b >>= 1;
+        reg.b += (c << 7);
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rr_c()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x1) << 4);
+        reg.c >>= 1;
+        reg.c += (c << 7);
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rr_d()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x1) << 4);
+        reg.d >>= 1;
+        reg.d += (c << 7);
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rr_e()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x1) << 4);
+        reg.e >>= 1;
+        reg.e += (c << 7);
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rr_h()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x1) << 4);
+        reg.h >>= 1;
+        reg.h += (c << 7);
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rr_l()
+    {
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x1) << 4);
+        reg.l >>= 1;
+        reg.l += (c << 7);
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void rr_HL()
+    {
+        uint8_t HL = mmu.read8(reg.gethl());
+        int c = ((reg.f & 0x10) != 0);
+        reg.f = 0;
+        reg.f |= ((HL & 0x1) << 4);
+        HL >>= 1;
+        HL += (c << 7);
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(), HL);
+        m = 2;
+    }
+    //2x Instructions
+    void sla_b()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x80) >> 3);
+        reg.b <<= 1;
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 1;
+    }
+    void sla_c()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x80) >> 3);
+        reg.c <<= 1;
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sla_d()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x80) >> 3);
+        reg.d <<= 1;
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sla_e()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x80) >> 3);
+        reg.e <<= 1;
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sla_h()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x80) >> 3);
+        reg.h <<= 1;
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sla_l()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x80) >> 3);
+        reg.l <<= 1;
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sla_HL()
+    {
+        uint8_t HL = mmu.read8(reg.gethl());
+        reg.f = 0;
+        reg.f |= ((HL & 0x80) >> 3);
+        HL <<= 1;
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(), HL);
+        m = 4;
+    }
+    void sla_a()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.a & 0x80) >> 3);
+        reg.a <<= 1;
+        if (!reg.a)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_b()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x1) << 4);
+        reg.b >>= 1;
+        reg.b += ((reg.b & 0x40) << 1);
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_c()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x1) << 4);
+        reg.c >>= 1;
+        reg.c += ((reg.c & 0x40) << 1);
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_d()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x1) << 4);
+        reg.d >>= 1;
+        reg.d += ((reg.d & 0x40) << 1);
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_e()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x1) << 4);
+        reg.e >>= 1;
+        reg.e += ((reg.e & 0x40) << 1);
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_h()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x1) << 4);
+        reg.h >>= 1;
+        reg.h += ((reg.h & 0x40) << 1);
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_l()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x1) << 4);
+        reg.l >>= 1;
+        reg.l += ((reg.l & 0x40) << 1);
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void sra_HL()
+    {
+        uint8_t HL = mmu.read8(reg.gethl());
+        reg.f = 0;
+        reg.f |= ((HL & 0x1) << 4);
+        HL >>= 1;
+        HL += ((HL & 0x40) << 1);
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(), HL);
+        m = 4;
+    }
+    void sra_a()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.a & 0x1) << 4);
+        reg.a >>= 1;
+        reg.a += ((reg.a & 0x40) << 1);
+        if (!reg.a)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    //3x Instructions
+    void swap_b()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.b & 0xF) << 4;
+        reg.b >>= 4;
+        reg.b += n;
+        if (!reg.b)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void swap_c()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.c & 0xF) << 4;
+        reg.c >>= 4;
+        reg.c += n;
+        if (!reg.c)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void swap_d()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.d & 0xF) << 4;
+        reg.d >>= 4;
+        reg.d += n;
+        if (!reg.d)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void swap_e()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.e & 0xF) << 4;
+        reg.e >>= 4;
+        reg.e += n;
+        if (!reg.e)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void swap_h()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.h & 0xF) << 4;
+        reg.h >>= 4;
+        reg.h += n;
+        if (!reg.h)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void swap_l()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.l & 0xF) << 4;
+        reg.l >>= 4;
+        reg.l += n;
+        if (!reg.l)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void swap_HL()
+    {
+        reg.f = 0;
+        uint8_t HL=mmu.read8(reg.gethl());
+        uint8_t n = (HL & 0xF) << 4;
+        HL >>= 4;
+        HL += n;
+        if (!reg.b)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(),HL);
+        m=2;
+    }
+    void swap_a()
+    {
+        reg.f = 0;
+        uint8_t n = (reg.a & 0xF) << 4;
+        reg.a >>= 4;
+        reg.a += n;
+        if (!reg.a)
+            reg.f |= 0x80;
+        m=2;
+    }
+    void srl_b()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.b & 0x1) << 4);
+        reg.b >>= 1;
+        if (!reg.b)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void srl_c()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.c & 0x1) << 4);
+        reg.c >>= 1;
+        if (!reg.c)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void srl_d()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.d & 0x1) << 4);
+        reg.d >>= 1;
+        if (!reg.d)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void srl_e()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.e & 0x1) << 4);
+        reg.e >>= 1;
+        if (!reg.e)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void srl_h()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.h & 0x1) << 4);
+        reg.h >>= 1;
+        if (!reg.h)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void srl_l()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.l & 0x1) << 4);
+        reg.l >>= 1;
+        if (!reg.l)
+            reg.f |= 0x80;
+        m = 2;
+    }
+    void srl_HL()
+    {
+        uint8_t HL = mmu.read8(reg.gethl());
+        reg.f = 0;
+        reg.f |= ((HL & 0x1) << 4);
+        HL >>= 1;
+        if (!HL)
+            reg.f |= 0x80;
+        mmu.write8(reg.gethl(), HL);
+        m = 4;
+    }
+    void srl_a()
+    {
+        reg.f = 0;
+        reg.f |= ((reg.a & 0x1) << 4);
+        reg.a >>= 1;
+        if (!reg.a)
+            reg.f |= 0x80;
+        m = 2;
+    }
+
     //BIT
     void bit_a(int n)
     {
@@ -4647,42 +5671,83 @@ struct CPU
     //RES
     void res_a(int n)
     {
-        reg.a&=~(1<<n);
+        reg.a &= ~(1 << n);
         m = 2;
     }
     void res_b(int n)
     {
-        reg.b&=~(1<<n);
+        reg.b &= ~(1 << n);
         m = 2;
     }
     void res_c(int n)
     {
-        reg.c&=~(1<<n);
+        reg.c &= ~(1 << n);
         m = 2;
     }
     void res_d(int n)
     {
-        reg.d&=~(1<<n);
+        reg.d &= ~(1 << n);
         m = 2;
     }
     void res_e(int n)
     {
-        reg.e&=~(1<<n);
+        reg.e &= ~(1 << n);
         m = 2;
     }
     void res_h(int n)
     {
-        reg.h&=~(1<<n);
+        reg.h &= ~(1 << n);
         m = 2;
     }
     void res_l(int n)
     {
-        reg.l&=~(1<<n);
+        reg.l &= ~(1 << n);
         m = 2;
     }
     void res_HL(int n)
     {
-        mmu.write8(reg.gethl(),mmu.read8(reg.gethl())&~(1<<n));
+        mmu.write8(reg.gethl(), mmu.read8(reg.gethl()) & ~(1 << n));
+        m = 4;
+    }
+    //SET
+    void set_a(int n)
+    {
+        reg.a |= (1 << n);
+        m = 2;
+    }
+    void set_b(int n)
+    {
+        reg.b |= (1 << n);
+        m = 2;
+    }
+    void set_c(int n)
+    {
+        reg.c |= (1 << n);
+        m = 2;
+    }
+    void set_d(int n)
+    {
+        reg.d |= (1 << n);
+        m = 2;
+    }
+    void set_e(int n)
+    {
+        reg.e |= (1 << n);
+        m = 2;
+    }
+    void set_h(int n)
+    {
+        reg.h |= (1 << n);
+        m = 2;
+    }
+    void set_l(int n)
+    {
+        reg.l |= (1 << n);
+        m = 2;
+    }
+    void set_HL(int n)
+    {
+        mmu.write8(reg.gethl(), mmu.read8(reg.gethl()) | (1 << n));
         m = 4;
     }
 } cpu;
