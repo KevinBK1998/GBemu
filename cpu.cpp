@@ -3952,6 +3952,787 @@ struct CPU
         switch (op)
         {
         case 0x00:
+            rlc_b();
+            break;
+        case 0x01:
+            rlc_c();
+            break;
+        case 0x02:
+            rlc_d();
+            break;
+        case 0x03:
+            rlc_e();
+            break;
+        case 0x04:
+            rlc_h();
+            break;
+        case 0x05:
+            rlc_l();
+            break;
+        case 0x06:
+            rlc_HL();
+            break;
+        case 0x07:
+            rlc_a();
+            m++; //prefix decode cycle
+            break;
+        case 0x08:
+            rrc_b();
+            break;
+        case 0x09:
+            rrc_c();
+            break;
+        case 0x0A:
+            rrc_d();
+            break;
+        case 0x0B:
+            rrc_e();
+            break;
+        case 0x0C:
+            rrc_h();
+            break;
+        case 0x0D:
+            rrc_l();
+            break;
+        case 0x0E:
+            rrc_HL();
+            break;
+        case 0x0F:
+            rrc_a();
+            m++; //prefix decode cycle
+            break;
+        case 0x10:
+            rl_b();
+            break;
+        case 0x11:
+            rl_c();
+            break;
+        case 0x12:
+            rl_d();
+            break;
+        case 0x13:
+            rl_e();
+            break;
+        case 0x14:
+            rl_h();
+            break;
+        case 0x15:
+            rl_l();
+            break;
+        case 0x16:
+            rl_HL();
+            break;
+        case 0x17:
+            rl_a();
+            m++; //prefix decode cycle
+            break;
+        case 0x18:
+            rr_b();
+            break;
+        case 0x19:
+            rr_c();
+            break;
+        case 0x1A:
+            rr_d();
+            break;
+        case 0x1B:
+            rr_e();
+            break;
+        case 0x1C:
+            rr_h();
+            break;
+        case 0x1D:
+            rr_l();
+            break;
+        case 0x1E:
+            rr_HL();
+            break;
+        case 0x1F:
+            rr_a();
+            m++; //prefix decode cycle
+            break;
+        case 0x20:
+            sla_b();
+            break;
+        case 0x21:
+            sla_c();
+            break;
+        case 0x22:
+            sla_d();
+            break;
+        case 0x23:
+            sla_e();
+            break;
+        case 0x24:
+            sla_h();
+            break;
+        case 0x25:
+            sla_l();
+            break;
+        case 0x26:
+            sla_HL();
+            break;
+        case 0x27:
+            sla_a();
+            break;
+        case 0x28:
+            sra_b();
+            break;
+        case 0x29:
+            sra_c();
+            break;
+        case 0x2A:
+            sra_d();
+            break;
+        case 0x2B:
+            sra_e();
+            break;
+        case 0x2C:
+            sra_h();
+            break;
+        case 0x2D:
+            sra_l();
+            break;
+        case 0x2E:
+            sra_HL();
+            break;
+        case 0x2F:
+            sra_a();
+            break;
+        case 0x30:
+            swap_b();
+            break;
+        case 0x31:
+            swap_c();
+            break;
+        case 0x32:
+            swap_d();
+            break;
+        case 0x33:
+            swap_e();
+            break;
+        case 0x34:
+            swap_h();
+            break;
+        case 0x35:
+            swap_l();
+            break;
+        case 0x36:
+            swap_HL();
+            break;
+        case 0x37:
+            swap_a();
+            break;
+        case 0x38:
+            srl_b();
+            break;
+        case 0x39:
+            srl_c();
+            break;
+        case 0x3A:
+            srl_d();
+            break;
+        case 0x3B:
+            srl_e();
+            break;
+        case 0x3C:
+            srl_h();
+            break;
+        case 0x3D:
+            srl_l();
+            break;
+        case 0x3E:
+            srl_HL();
+            break;
+        case 0x3F:
+            srl_a();
+            break;
+        case 0x40:
+            bit_b(0);
+            break;
+        case 0x41:
+            bit_c(0);
+            break;
+        case 0x42:
+            bit_d(0);
+            break;
+        case 0x43:
+            bit_e(0);
+            break;
+        case 0x44:
+            bit_h(0);
+            break;
+        case 0x45:
+            bit_l(0);
+            break;
+        case 0x46:
+            bit_HL(0);
+            break;
+        case 0x47:
+            bit_a(0);
+            break;
+        case 0x48:
+            bit_b(1);
+            break;
+        case 0x49:
+            bit_c(1);
+            break;
+        case 0x4A:
+            bit_d(1);
+            break;
+        case 0x4B:
+            bit_e(1);
+            break;
+        case 0x4C:
+            bit_h(1);
+            break;
+        case 0x4D:
+            bit_l(1);
+            break;
+        case 0x4E:
+            bit_HL(1);
+            break;
+        case 0x4F:
+            bit_a(1);
+            break;
+        case 0x50:
+            bit_b(2);
+            break;
+        case 0x51:
+            bit_c(2);
+            break;
+        case 0x52:
+            bit_d(2);
+            break;
+        case 0x53:
+            bit_e(2);
+            break;
+        case 0x54:
+            bit_h(2);
+            break;
+        case 0x55:
+            bit_l(2);
+            break;
+        case 0x56:
+            bit_HL(2);
+            break;
+        case 0x57:
+            bit_a(2);
+            break;
+        case 0x58:
+            bit_b(3);
+            break;
+        case 0x59:
+            bit_c(3);
+            break;
+        case 0x5A:
+            bit_d(3);
+            break;
+        case 0x5B:
+            bit_e(3);
+            break;
+        case 0x5C:
+            bit_h(3);
+            break;
+        case 0x5D:
+            bit_l(3);
+            break;
+        case 0x5E:
+            bit_HL(3);
+            break;
+        case 0x5F:
+            bit_a(3);
+            break;
+        case 0x60:
+            bit_b(4);
+            break;
+        case 0x61:
+            bit_c(4);
+            break;
+        case 0x62:
+            bit_d(4);
+            break;
+        case 0x63:
+            bit_e(4);
+            break;
+        case 0x64:
+            bit_h(4);
+            break;
+        case 0x65:
+            bit_l(4);
+            break;
+        case 0x66:
+            bit_HL(4);
+            break;
+        case 0x67:
+            bit_a(4);
+            break;
+        case 0x68:
+            bit_b(5);
+            break;
+        case 0x69:
+            bit_c(5);
+            break;
+        case 0x6A:
+            bit_d(5);
+            break;
+        case 0x6B:
+            bit_e(5);
+            break;
+        case 0x6C:
+            bit_h(5);
+            break;
+        case 0x6D:
+            bit_l(5);
+            break;
+        case 0x6E:
+            bit_HL(5);
+            break;
+        case 0x6F:
+            bit_a(5);
+            break;
+        case 0x70:
+            bit_b(6);
+            break;
+        case 0x71:
+            bit_c(6);
+            break;
+        case 0x72:
+            bit_d(6);
+            break;
+        case 0x73:
+            bit_e(6);
+            break;
+        case 0x74:
+            bit_h(6);
+            break;
+        case 0x75:
+            bit_l(6);
+            break;
+        case 0x76:
+            bit_HL(6);
+            break;
+        case 0x77:
+            bit_a(6);
+            break;
+        case 0x78:
+            bit_b(7);
+            break;
+        case 0x79:
+            bit_c(7);
+            break;
+        case 0x7A:
+            bit_d(7);
+            break;
+        case 0x7B:
+            bit_e(7);
+            break;
+        case 0x7C:
+            bit_h(7);
+            break;
+        case 0x7D:
+            bit_l(7);
+            break;
+        case 0x7E:
+            bit_HL(7);
+            break;
+        case 0x7F:
+            bit_a(7);
+            break;
+        case 0x80:
+            res_b(0);
+            break;
+        case 0x81:
+            res_c(0);
+            break;
+        case 0x82:
+            res_d(0);
+            break;
+        case 0x83:
+            res_e(0);
+            break;
+        case 0x84:
+            res_h(0);
+            break;
+        case 0x85:
+            res_l(0);
+            break;
+        case 0x86:
+            res_HL(0);
+            break;
+        case 0x87:
+            res_a(0);
+            break;
+        case 0x88:
+            res_b(1);
+            break;
+        case 0x89:
+            res_c(1);
+            break;
+        case 0x8A:
+            res_d(1);
+            break;
+        case 0x8B:
+            res_e(1);
+            break;
+        case 0x8C:
+            res_h(1);
+            break;
+        case 0x8D:
+            res_l(1);
+            break;
+        case 0x8E:
+            res_HL(1);
+            break;
+        case 0x8F:
+            res_a(1);
+            break;
+        case 0x90:
+            res_b(2);
+            break;
+        case 0x91:
+            res_c(2);
+            break;
+        case 0x92:
+            res_d(2);
+            break;
+        case 0x93:
+            res_e(2);
+            break;
+        case 0x94:
+            res_h(2);
+            break;
+        case 0x95:
+            res_l(2);
+            break;
+        case 0x96:
+            res_HL(2);
+            break;
+        case 0x97:
+            res_a(2);
+            break;
+        case 0x98:
+            res_b(3);
+            break;
+        case 0x99:
+            res_c(3);
+            break;
+        case 0x9A:
+            res_d(3);
+            break;
+        case 0x9B:
+            res_e(3);
+            break;
+        case 0x9C:
+            res_h(3);
+            break;
+        case 0x9D:
+            res_l(3);
+            break;
+        case 0x9E:
+            res_HL(3);
+            break;
+        case 0x9F:
+            res_a(3);
+            break;
+        case 0xA0:
+            res_b(4);
+            break;
+        case 0xA1:
+            res_c(4);
+            break;
+        case 0xA2:
+            res_d(4);
+            break;
+        case 0xA3:
+            res_e(4);
+            break;
+        case 0xA4:
+            res_h(4);
+            break;
+        case 0xA5:
+            res_l(4);
+            break;
+        case 0xA6:
+            res_HL(4);
+            break;
+        case 0xA7:
+            res_a(4);
+            break;
+        case 0xA8:
+            res_b(5);
+            break;
+        case 0xA9:
+            res_c(5);
+            break;
+        case 0xAA:
+            res_d(5);
+            break;
+        case 0xAB:
+            res_e(5);
+            break;
+        case 0xAC:
+            res_h(5);
+            break;
+        case 0xAD:
+            res_l(5);
+            break;
+        case 0xAE:
+            res_HL(5);
+            break;
+        case 0xAF:
+            res_a(5);
+            break;
+        case 0xB0:
+            res_b(6);
+            break;
+        case 0xB1:
+            res_c(6);
+            break;
+        case 0xB2:
+            res_d(6);
+            break;
+        case 0xB3:
+            res_e(6);
+            break;
+        case 0xB4:
+            res_h(6);
+            break;
+        case 0xB5:
+            res_l(6);
+            break;
+        case 0xB6:
+            res_HL(6);
+            break;
+        case 0xB7:
+            res_a(6);
+            break;
+        case 0xB8:
+            res_b(7);
+            break;
+        case 0xB9:
+            res_c(7);
+            break;
+        case 0xBA:
+            res_d(7);
+            break;
+        case 0xBB:
+            res_e(7);
+            break;
+        case 0xBC:
+            res_h(7);
+            break;
+        case 0xBD:
+            res_l(7);
+            break;
+        case 0xBE:
+            res_HL(7);
+            break;
+        case 0xBF:
+            res_a(7);
+            break;
+        case 0xC0:
+            set_b(0);
+            break;
+        case 0xC1:
+            set_c(0);
+            break;
+        case 0xC2:
+            set_d(0);
+            break;
+        case 0xC3:
+            set_e(0);
+            break;
+        case 0xC4:
+            set_h(0);
+            break;
+        case 0xC5:
+            set_l(0);
+            break;
+        case 0xC6:
+            set_HL(0);
+            break;
+        case 0xC7:
+            set_a(0);
+            break;
+        case 0xC8:
+            set_b(1);
+            break;
+        case 0xC9:
+            set_c(1);
+            break;
+        case 0xCA:
+            set_d(1);
+            break;
+        case 0xCB:
+            set_e(1);
+            break;
+        case 0xCC:
+            set_h(1);
+            break;
+        case 0xCD:
+            set_l(1);
+            break;
+        case 0xCE:
+            set_HL(1);
+            break;
+        case 0xCF:
+            set_a(1);
+            break;
+        case 0xD0:
+            set_b(2);
+            break;
+        case 0xD1:
+            set_c(2);
+            break;
+        case 0xD2:
+            set_d(2);
+            break;
+        case 0xD3:
+            set_e(2);
+            break;
+        case 0xD4:
+            set_h(2);
+            break;
+        case 0xD5:
+            set_l(2);
+            break;
+        case 0xD6:
+            set_HL(2);
+            break;
+        case 0xD7:
+            set_a(2);
+            break;
+        case 0xD8:
+            set_b(3);
+            break;
+        case 0xD9:
+            set_c(3);
+            break;
+        case 0xDA:
+            set_d(3);
+            break;
+        case 0xDB:
+            set_e(3);
+            break;
+        case 0xDC:
+            set_h(3);
+            break;
+        case 0xDD:
+            set_l(3);
+            break;
+        case 0xDE:
+            set_HL(3);
+            break;
+        case 0xDF:
+            set_a(3);
+            break;
+        case 0xE0:
+            set_b(4);
+            break;
+        case 0xE1:
+            set_c(4);
+            break;
+        case 0xE2:
+            set_d(4);
+            break;
+        case 0xE3:
+            set_e(4);
+            break;
+        case 0xE4:
+            set_h(4);
+            break;
+        case 0xE5:
+            set_l(4);
+            break;
+        case 0xE6:
+            set_HL(4);
+            break;
+        case 0xE7:
+            set_a(4);
+            break;
+        case 0xE8:
+            set_b(5);
+            break;
+        case 0xE9:
+            set_c(5);
+            break;
+        case 0xEA:
+            set_d(5);
+            break;
+        case 0xEB:
+            set_e(5);
+            break;
+        case 0xEC:
+            set_h(5);
+            break;
+        case 0xED:
+            set_l(5);
+            break;
+        case 0xEE:
+            set_HL(5);
+            break;
+        case 0xEF:
+            set_a(5);
+            break;
+        case 0xF0:
+            set_b(6);
+            break;
+        case 0xF1:
+            set_c(6);
+            break;
+        case 0xF2:
+            set_d(6);
+            break;
+        case 0xF3:
+            set_e(6);
+            break;
+        case 0xF4:
+            set_h(6);
+            break;
+        case 0xF5:
+            set_l(6);
+            break;
+        case 0xF6:
+            set_HL(6);
+            break;
+        case 0xF7:
+            set_a(6);
+            break;
+        case 0xF8:
+            set_b(7);
+            break;
+        case 0xF9:
+            set_c(7);
+            break;
+        case 0xFA:
+            set_d(7);
+            break;
+        case 0xFB:
+            set_e(7);
+            break;
+        case 0xFC:
+            set_h(7);
+            break;
+        case 0xFD:
+            set_l(7);
+            break;
+        case 0xFE:
+            set_HL(7);
+            break;
+        case 0xFF:
+            set_a(7);
+            break;
+        default:
+            cout << "Unknown Instruction 0xCB 0x" << unsigned(op) << endl;
+            exit(1);
+        }
+    }
+    void preMapc(uint8_t op)
+    {
+        switch (op)
+        {
+        case 0x00:
             cout << "RLC B\n";
             rlc_b();
             break;

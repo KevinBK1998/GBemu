@@ -4,7 +4,7 @@ void reset()
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("ttt.gb");
+	mmu.load("red.gb");
 }
 void step()
 {
