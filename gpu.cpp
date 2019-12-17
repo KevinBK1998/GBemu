@@ -2,13 +2,66 @@
 #include <stdlib.h>
 #include <iostream>
 #include <SDL2/SDL.h>
-const int SCREEN_WIDTH = 160;//*2;
-const int SCREEN_HEIGHT = 144;//*2;
+#include "keys.cpp"
+const int SCREEN_WIDTH = 160;  //*2;
+const int SCREEN_HEIGHT = 144; //*2;
 
+typedef struct OBJM
+{
+    uint8_t y, x, tile;
+    struct OPT
+    {
+        bool pty, yf, xf, palNo;
+        void byte2flags(uint8_t data)
+        {
+            pty = (data > 0x7F);
+            yf = ((data & 0x40) != 0);
+            xf = ((data & 0x20) != 0);
+            palNo = ((data & 0x10) != 0);
+        }
+    } opt;
+    void update(uint8_t type, uint8_t data)
+    {
+        switch (type)
+        {
+        case 0:
+            y = data - 16;
+            break;
+        case 1:
+            x = data - 8;
+            break;
+        case 2:
+            tile = data;
+            break;
+        case 3:
+            opt.byte2flags(data);
+            break;
+        }
+    }
+} OBJM;
 struct GPU
 {
     //GPU registers
-    uint8_t ctrl, bgpal, scx, scy, line;
+    uint8_t bgpal, scx, scy, line, objpal[2];
+    struct CTRL
+    {
+        bool lcdOn, winMap, winOn, bgSet, bgMap, sprSize, sprOn, bgOn;
+        uint8_t flags2byte()
+        {
+            return (lcdOn * 0x80 + winMap * 0x40 + winOn * 0x20 + bgSet * 0x10 + bgMap * 8 + sprSize * 4 + sprOn * 2 + bgOn);
+        }
+        void byte2flags(uint8_t data)
+        {
+            lcdOn = (data > 0x7F);
+            winMap = ((data & 0x40) != 0);
+            winOn = ((data & 0x20) != 0);
+            bgSet = ((data & 0x10) != 0);
+            bgMap = ((data & 8) != 0);
+            sprSize = ((data & 4) != 0);
+            sprOn = ((data & 2) != 0);
+            bgOn = (data & 1);
+        }
+    } ctrl;
     /*
     LCD&GPU control 0xFF40
                 7      |6           |5     |4          |3          |2                         |1      |0
@@ -21,8 +74,11 @@ struct GPU
     //GPU memory
     uint8_t vram[8192];
     uint8_t oam[160];
+    //object meta
+    OBJM objAttr[40];
+    uint8_t row[160];
     //flags
-    int mode,clk;
+    int mode, clk;
     //graphic components
     SDL_Window *win;
     SDL_Renderer *ren;
@@ -98,7 +154,6 @@ struct GPU
             quit = false;
             mode = 2;
             clk = line = 0;
-            ctrl=0;
             bgpal = 0xE4;
             //Clear screen
             SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -120,64 +175,118 @@ struct GPU
             return (bgpal >> 6) & 3;
         }
     }
-    void scanline()
+    int oPalMap(int v, int pal)
     {
-        uint16_t mapoffs = (ctrl&0x8) ? 0x1C00 : 0x1800;
+        switch (v)
+        {
+        case 0:
+            return objpal[pal] & 3;
+        case 1:
+            return (objpal[pal] >> 2) & 3;
+        case 2:
+            return (objpal[pal] >> 4) & 3;
+        case 3:
+            return (objpal[pal] >> 6) & 3;
+        }
+    }
+    void bgScan()
+    {
+        uint16_t mapoffs = ctrl.bgMap ? 0x1C00 : 0x1800;
         mapoffs += (((line + scy) & 0xFF) >> 3) << 5; //divide line by 8, multiply by 32 coz 32 tiles in one line
         uint16_t lineoffs = scx >> 3;                 //divide by 8
         uint8_t y = (line + scy) & 0x7;
         uint8_t x = scx & 7;
-        uint16_t canvasoffs = line * 160 * 4;
-        uint8_t lb;
-        uint8_t hb;
-        uint16_t tile = vram[mapoffs + lineoffs];
-        if ((ctrl&0x10)  == 1 && tile < 128)
-            tile += 256;
-        for (int i = 0,f=0; i < 160; i++)
-        {//if(i==157)f=0;
-            // 0-blk,1-darkgry,2-lightgray,3-white
-            lb = vram[(tile << 4) + (y << 1)];
-            hb = vram[(tile << 4) + (y << 1) + 1];
-            int v = ((lb >> (7 - x)) & 1) + 2*(((hb >> (7 - x)) & 1));
-            switch (palMap(v))
+        for (int i = 0; i < 160;)
+        {
+            uint16_t tile = vram[mapoffs + lineoffs];
+            if (!ctrl.bgSet && tile < 128)
+                tile += 256;
+            uint8_t lb = vram[(tile << 4) + (y << 1)];
+            uint8_t hb = vram[(tile << 4) + (y << 1) + 1];
+            for (; x < 8; x++, i++)
             {
-            case 0:
-            if(f)
-                std::cout<<"0";
-                SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
-                break;
-            case 1:if(f)
-                std::cout<<"1";
-                SDL_SetRenderDrawColor(ren, 192, 192, 192, 0xFF);
-                break;
-            case 2:if(f)
-                std::cout<<"2";
-                SDL_SetRenderDrawColor(ren, 96, 96, 96, 0xFF);
-                break;
-            case 3:if(f)
-                std::cout<<"3";
-                SDL_SetRenderDrawColor(ren, 0, 0, 0, 0xFF);
-                break;
+                row[i] = ((lb >> (7 - x)) & 1) + 2 * (((hb >> (7 - x)) & 1));
+                switch (palMap(row[i]))
+                {
+                case 0:
+                    SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
+                    break;
+                case 1:
+                    SDL_SetRenderDrawColor(ren, 192, 192, 192, 0xFF);
+                    break;
+                case 2:
+                    SDL_SetRenderDrawColor(ren, 96, 96, 96, 0xFF);
+                    break;
+                case 3:
+                    SDL_SetRenderDrawColor(ren, 0, 0, 0, 0xFF);
+                    break;
+                }
+                SDL_RenderDrawPoint(ren, i, line);
             }
-            //SDL_Rect fillRect = { i*2, line*2, i*2+1, line*2+1 };//scale 200%
-            SDL_RenderDrawPoint(ren, i, line); //single point
-            //SDL_RenderFillRect(ren, &fillRect );//scale 200% 4px:1px
-            // When this tile ends, read another
-            x++;
-            if (x == 8)
+            x = 0;
+            lineoffs = (lineoffs + 1) & 31;
+        }
+    }
+    void spriteScan()
+    {
+        uint8_t lb, hb, tlrw[8];
+        for (int i = 0; i < 40; i++)
+        {
+            uint8_t y = objAttr[i].y;
+            if (y <= line && (y + 8) < line)
             {
-                x = 0;
-                lineoffs = (lineoffs + 1) & 31;
-                tile = vram[mapoffs + lineoffs];
-                if ((ctrl&0x10)  == 1 && tile < 128)
-                    tile += 256;
+                int n = objAttr[i].opt.palNo;
+                uint8_t tile = objAttr[i].tile;
+                if (objAttr[i].opt.yf)
+                {
+                    lb = vram[(tile << 4) + ((7 - (line - y)) << 1)];
+                    hb = vram[(tile << 4) + ((7 - (line - y)) << 1) + 1];
+                }
+                else
+                {
+                    lb = vram[(tile << 4) + ((line - y) << 1)];
+                    hb = vram[(tile << 4) + ((line - y) << 1) + 1];
+                }
+                for (int x = 0; x < 8; x++)
+                    if (objAttr[i].opt.xf)
+                        tlrw[x] = ((lb >> x) & 1) + 2 * (((hb >> x) & 1));
+                    else
+                        tlrw[x] = ((lb >> (7 - x)) & 1) + 2 * (((hb >> (7 - x)) & 1));
+                for (int x = 0; x < 8; x++)
+                {
+                    uint8_t xco = objAttr[i].x;
+                    if (((xco + x) >= 0 && (xco + x < 160)) && (tlrw[x]) && (objAttr[i].opt.pty || !row[xco + x]))
+                    {
+                        switch (oPalMap(tlrw[x], n))
+                        {
+                        case 0:
+                            SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
+                            break;
+                        case 1:
+                            SDL_SetRenderDrawColor(ren, 192, 192, 192, 0xFF);
+                            break;
+                        case 2:
+                            SDL_SetRenderDrawColor(ren, 96, 96, 96, 0xFF);
+                            break;
+                        case 3:
+                            SDL_SetRenderDrawColor(ren, 0, 0, 0, 0xFF);
+                            break;
+                        }
+                        SDL_RenderDrawPoint(ren, xco, line);
+                    }
+                }
             }
         }
-        //std::cout<<std::hex<<std::endl;
+    }
+    void scanline()
+    {
+        if (ctrl.bgOn)
+            bgScan();
+        if (ctrl.sprOn)
+            spriteScan();
     }
     void renScreen()
     {
-        //std::cin >> base;
         //Event handler
         SDL_Event e;
 
@@ -190,6 +299,7 @@ struct GPU
         //Handle events on queue
         if (SDL_PollEvent(&e) != 0)
         {
+            joyp.input(e);
             //User requests quit
             if (e.type == SDL_QUIT)
             {
@@ -203,7 +313,7 @@ struct GPU
         switch (add & 0xFF)
         {
         case 0x40:
-            return ctrl;
+            return ctrl.flags2byte();
         case 0x42:
 
             return scy;
@@ -212,7 +322,7 @@ struct GPU
         case 0x44:
             return line;
         default:
-            std::cout << "GPU Read error 0x"<<add<<"\n";
+            std::cout << "GPU Read error 0x" << add << "\n";
             return 0;
         }
     }
@@ -221,7 +331,7 @@ struct GPU
         switch (add & 0xFF)
         {
         case 0x40:
-            ctrl=data;
+            ctrl.byte2flags(data);
             break;
         case 0x42:
             scy = data;
@@ -232,17 +342,32 @@ struct GPU
         case 0x47:
             bgpal = data;
             break;
+        case 0x48:
+            objpal[0] = data;
+            break;
+        case 0x49:
+            objpal[1] = data;
+            break;
         default:
-            std::cout << "GPU Write error 0x"<<add<<"\n";
+            std::cout << "GPU Write error 0x" << add << "\n";
             break;
         }
     }
-    void printState(){
+    void printState()
+    {
         std::cout << "GPU:\n";
-        std::cout << "LCD & GPU Control:" << unsigned(ctrl) << "\n";
+        std::cout << "LCD & GPU Control:" << unsigned(ctrl.flags2byte()) << "\n";
         std::cout << "Scroll Y:" << unsigned(scy) << "\n";
         std::cout << "Scroll X:" << unsigned(scx) << "\n";
         std::cout << "Current scanline:" << unsigned(line) << "\n";
-        std::cout << "BG palette:" << unsigned(ctrl) << "\n";
+        std::cout << "BG palette:" << unsigned(bgpal) << "\n";
+        std::cout << "OBJ0 palette:" << unsigned(objpal[0]) << "\n";
+        std::cout << "OBJ1 palette:" << unsigned(objpal[1]) << "\n";
+    }
+    void updateObj(uint8_t add, uint8_t data)
+    {
+        int objno = add >> 2;
+        if (objno < 40)
+            objAttr[objno].update(add & 3, data);
     }
 } gpu;

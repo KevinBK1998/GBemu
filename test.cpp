@@ -4,18 +4,31 @@ void reset()
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("red.gb");
+	mmu.load("ttt.gb");
 }
-void step(){
+void step()
+{
 	if (cpu.reg.pc > 0x0100)
-		{
-			mmu.b = 0;
-		}
-		uint8_t op = mmu.read8(cpu.reg.pc++);
-		cpu.mapc(op);
-		cpu.m_tot += cpu.m;
-		cpu.t_tot += cpu.t;
-		cpu.gpuStep();
+	{
+		mmu.b = 0;
+	}
+	uint8_t op = mmu.read8(cpu.reg.pc++);
+	cpu.map(op);
+	cpu.m_tot += cpu.m;
+	cpu.t_tot += cpu.t;
+	cpu.gpuStep();
+	// if (!mmu.b)
+	// {
+	// 	char ch;
+	// 	cout << "BIOS out:";
+	// 	cin >> ch;
+	// 	if (ch == 'c')
+	// 		cpu.printState();
+	// 	else if (ch == 'g')
+	// 		gpu.printState();
+	// 	else if (ch == 'm')
+	// 		mmu.dump();
+	// }
 }
 void frame()
 {
@@ -25,11 +38,12 @@ void frame()
 		step();
 	} while (cpu.t_tot < nxtFrame);
 }
-void floop(){
+void floop()
+{
 	int i;
-	cin>>i;
-	for(;i>0;i--)
-	frame();
+	cin >> i;
+	for (; i > 0; i--)
+		frame();
 }
 int main(int argc, char *args[])
 {
@@ -41,6 +55,13 @@ int main(int argc, char *args[])
 		if (ch == 's')
 		{
 			step();
+		}
+		else if (ch == 'S')
+		{
+			int i;
+			cin >> i;
+			for (; i > 0; i--)
+				step();
 		}
 		else if (ch == 'c')
 		{
@@ -54,12 +75,12 @@ int main(int argc, char *args[])
 		{
 			reset();
 		}
-		else if(ch=='r')
+		else if (ch == 'r')
 		{
 			cpu.printState();
 			gpu.printState();
 		}
-		else if(ch=='m')
+		else if (ch == 'm')
 		{
 			mmu.dump();
 		}

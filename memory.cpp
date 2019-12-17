@@ -91,6 +91,12 @@ struct MMU
                 if (add < 0xFF80) //Memory MAP
                     switch (add & 0xF0)
                     {
+                    case 0x00:
+                        if (add == 0xFF00)
+                            return joyp.read();
+                        else
+                        cout<<"Unable to read 0x"<<add<<endl;
+                        return 0;
                     case 0x40:
                     case 0x50:
                     case 0x60:
@@ -145,12 +151,19 @@ struct MMU
             {
             case 0xE00:
                 if (add < 0xFEA0)
-                    gpu.oam[add & 0xFF] = data; //not complete
+                    gpu.oam[add & 0xFF] = data;
+                    gpu.updateObj(add-0xFEA0,data);
                 break;
             case 0xF00:
                 if (add < 0xFF80) //Memory MAP
                     switch (add & 0xF0)
                     {
+                    case 0x00:
+                        if (add == 0xFF00)
+                            joyp.write(data);
+                        else
+                        cout<<"Unable to write 0x"<<add<<endl;
+                            break;
                     case 0x40:
                     case 0x50:
                     case 0x60:
@@ -192,7 +205,7 @@ struct MMU
             for (int hb = 0; hb <= 0xF; hb++)
             {
                 for (int lb = 0; lb <= 0xF; lb++)
-                    fout << " " << unsigned(read8((hB << 8) +(hb<<4) +lb));
+                    fout << " " << unsigned(read8((hB << 8) + (hb << 4) + lb));
                 fout << endl;
             }
             hB++;

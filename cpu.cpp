@@ -8,7 +8,7 @@ struct CPU
     registers reg;
     int m, t;
     long m_tot, t_tot;
-    int hlt, ie;
+    int hlt, ime;
     //0x Instructions
     void nop()
     {
@@ -1864,7 +1864,7 @@ struct CPU
     {
         reg.pc = mmu.read16(reg.sp);
         reg.sp += 2;
-        ie = 1;
+        ime = 1;
         m = 3;
     }
     void jpc_nn()
@@ -2017,7 +2017,7 @@ struct CPU
     }
     void di()
     {
-        ie = 0;
+        ime = 0;
         m = 1;
     }
     //0xF4 not defined
@@ -2066,7 +2066,7 @@ struct CPU
     }
     void ei()
     {
-        ie = 1;
+        ime = 1;
         m = 1;
     }
     //0xFC not defined
@@ -2113,7 +2113,7 @@ struct CPU
     {
         reg.reset();
         m = t = m_tot = t_tot = hlt = 0;
-        ie = 1;
+        ime = 1;
         cout << hex << uppercase << "Reset\n";
     }
     void gpuStep()
@@ -2161,7 +2161,7 @@ struct CPU
             { //if vram done scanline and enter hblank
                 gpu.mode = 0;
                 gpu.clk = 0;
-                if (gpu.ctrl & 0x80)
+                if (gpu.ctrl.lcdOn)
                     gpu.scanline();
             }
             break;
