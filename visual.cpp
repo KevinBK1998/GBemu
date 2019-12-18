@@ -1,11 +1,38 @@
 #include <SDL2/SDL.h>
-const int SCREEN_WIDTH = 160;
-const int SCREEN_HEIGHT = 144;
+#include <iostream>
+using namespace std;
+const int SCREEN_WIDTH = 8;
+const int SCREEN_HEIGHT = 8;
 //The window we'll be rendering to
 SDL_Window *gWindow = NULL;
 //The window renderer
 SDL_Renderer *gRenderer = NULL;
+//Palette
+uint8_t pal = 0xfc;
 
+//palette remap
+void remap(int v)
+{
+	switch ((pal >> (v * 2)) & 3)
+	{
+	case 0:
+		//cout << "0";
+		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		break;
+	case 1:
+		//cout << "1";
+		SDL_SetRenderDrawColor(gRenderer, 0xC0, 0xC0, 0xC0, 0xFF);
+		break;
+	case 2:
+		//cout << "2";
+		SDL_SetRenderDrawColor(gRenderer, 0x60, 0x60, 0x60, 0xFF);
+		break;
+	case 3:
+		//cout << "3";
+		SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
+		break;
+	}
+}
 //Starts up SDL and creates window
 bool init()
 {
@@ -79,6 +106,8 @@ int main(int argc, char *args[])
 		//Event handler
 		SDL_Event e;
 
+		//Tile data
+		int tile[16] = {0, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F, 0x2F};
 		//While application is running
 		while (!quit)
 		{
@@ -95,27 +124,21 @@ int main(int argc, char *args[])
 			//Clear screen
 			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 			SDL_RenderClear(gRenderer);
-
-			//Render red filled quad
-			SDL_Rect fillRect = {SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
-			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
-			SDL_RenderFillRect(gRenderer, &fillRect);
-
-			//Render green outlined quad
-			SDL_Rect outlineRect = {SCREEN_WIDTH / 6, SCREEN_HEIGHT / 6, SCREEN_WIDTH * 2 / 3, SCREEN_HEIGHT * 2 / 3};
-			SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0x00, 0xFF);
-			SDL_RenderDrawRect(gRenderer, &outlineRect);
-
-			//Draw light yellow horizontal line
-			SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0x00, 0xFF);
-			SDL_RenderDrawLine(gRenderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2);
-
-			//Draw vertical line of blue dots
-			SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, 0xFF);
-			//for (int i = 0; i < SCREEN_WIDTH; i ++)
-				for(int j=0;j<SCREEN_HEIGHT;j+=4)
-					SDL_RenderDrawPoint(gRenderer, SCREEN_WIDTH / 2 ,j);
-
+			for (int i = 0; i < 16; i++)
+				cin >> tile[i];
+			//Draw
+			for (int y = 0; y < 8; y++)
+			{
+				int hb = tile[y * 2 + 1];
+				int lb = tile[y * 2];
+				for (int x = 0; x < 8; x++)
+				{
+					//SDL_Rect fillRect = {2 * x, 2 * y, 2 * x + 1, 2 * y + 1};
+					remap(((lb >> (7 - x)) & 1) + 2 * ((hb >> (7 - x)) & 1));
+					//SDL_RenderFillRect(gRenderer, &fillRect);
+					SDL_RenderDrawPoint(gRenderer, x, y);
+				}
+			}
 			//Update screen
 			SDL_RenderPresent(gRenderer);
 		}

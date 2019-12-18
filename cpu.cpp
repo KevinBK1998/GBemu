@@ -2103,46 +2103,50 @@ struct CPU
         if (ime && mmu.ie && mmu.ifl)
         {
             uint8_t fired = mmu.ie & mmu.ifl;
-            cout<<unsigned(mmu.ie)<<" "<<unsigned(mmu.ifl)<<endl;
-            ime = 0;hlt=0;
+            cout << "IE:0x"<<unsigned(mmu.ie) << " IF:0x" << unsigned(mmu.ifl) << endl;
+            ime = 0;
+            hlt = 0;
             reg.sp -= 2;
-            mmu.write16(reg.sp, reg.pc);m = 3;t=12;
+            mmu.write16(reg.sp, reg.pc);
+            m = 3;
+            t = 12;
             if (fired & 1)
-            {   cout<<"INT VB\n";
+            {
+                cout << "INT VB\n";
                 mmu.ifl &= 0xFE;
                 reg.pc = 0x40;
             }
             else if (fired & 2)
             {
-                cout<<"INT LCD\n";
+                cout << "INT LCD\n";
                 mmu.ifl &= 0xFD;
                 reg.pc = 0x48;
             }
             else if (fired & 4)
             {
-                cout<<"INT TIM\n";
+                cout << "INT TIM\n";
                 mmu.ifl &= 0xFB;
                 reg.pc = 0x50;
             }
             else if (fired & 8)
             {
-                cout<<"INT SER\n";
+                cout << "INT SER\n";
                 mmu.ifl &= 0xF7;
                 reg.pc = 0x58;
             }
             else if (fired & 0x10)
             {
-                cout<<"INT JP\n";
+                cout << "INT JP\n";
                 mmu.ifl &= 0xEF;
                 reg.pc = 0x60;
-            }else
-            {
-                ime=1;
-                reg.sp+=2;
-                m=0;t=0;
             }
-            
-            
+            else
+            {
+                ime = 1;
+                reg.sp += 2;
+                m = 0;
+                t = 0;
+            }
         }
     }
     //Implementation and Mapping
@@ -2154,7 +2158,7 @@ struct CPU
         cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
         cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
         cout << "pc:" << reg.pc << "\tsp:" << reg.sp << "\n";
-        cout << "z:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\n";
+        cout << "z:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\tie:" << unsigned(ime) << "\n";
         cout << "Time passed:" << dec << t_tot / 1000 << " ms" << hex << endl;
     }
     void reset()
@@ -2177,8 +2181,10 @@ struct CPU
                 if (gpu.line == 143)
                 { //if last line go to vblank after render screen
                     gpu.mode = 1;
+                    if (!gpu.ctrl.lcdOn)
+                        gpu.clear();
                     gpu.renScreen();
-                    mmu.ifl|=1;
+                    mmu.ifl |= 1;
                 }
                 else
                 {

@@ -1,5 +1,5 @@
 #include "cpu.cpp"
-uint16_t brkpt = 0x40;
+uint16_t brkpt = 0xe0;
 bool brk = true;
 void reset()
 {
@@ -23,6 +23,7 @@ void step()
 	cpu.checkInt();
 	cpu.m_tot += cpu.m;
 	cpu.t_tot += cpu.t;
+	if(cpu.m)
 	cpu.gpuStep();
 	brk = true;
 }

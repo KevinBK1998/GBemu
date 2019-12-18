@@ -28,10 +28,12 @@ struct MMU
     uint8_t wram[8192];
     uint8_t eram[8192];
     uint8_t zram[128];
-    uint8_t ie, ifl;
+    uint8_t ie, ifl, cartType, eExRam, romBk, ramBk, mde, romOffset, ramOffset;
     void reset()
     {
         b = 1;
+        ie = 0;
+        ifl = 0;
     }
     void load(char *name)
     {
@@ -48,6 +50,7 @@ struct MMU
             fin.get(c);
             rom[i++] = c;
         }
+        cartType = rom[0x147];
     }
     uint8_t read8(uint16_t add)
     {
@@ -68,13 +71,13 @@ struct MMU
         case 0x5000:
         case 0x6000:
         case 0x7000:
-            return rom[add];
+            return rom[romOffset + (add & 0x3FFF)];
         case 0x8000:
         case 0x9000:
             return gpu.vram[add & 0x1FFF];
         case 0xA000:
         case 0xB000:
-            return eram[add & 0x1FFF];
+            return eram[ramOffset + (add & 0x1FFF)];
         case 0xC000:
         case 0xD000:
             return wram[add & 0x1FFF];
@@ -89,9 +92,9 @@ struct MMU
                 else
                     return 0;
             case 0xF00:
-            if (add == 0xFF50)
+                if (add == 0xFF50)
                     return !b;
-                if (add == 0xFFFF)
+                else if (add == 0xFFFF)
                     return ie;
                 else if (add < 0xFF80) //Memory MAP
                     switch (add & 0xF0)
@@ -99,7 +102,7 @@ struct MMU
                     case 0x00:
                         if (add == 0xFF00)
                             return joyp.read();
-                        else if (add = 0xFF0F)
+                        else if (add == 0xFF0F)
                             return ifl;
                         else
                             cout << "Unable to read 0x" << add << endl;
@@ -110,11 +113,12 @@ struct MMU
                     case 0x70: //GPU reg
                         return gpu.rd(add);
                     default:
+                        cout << "Unable to read 0x" << add << endl;
                         return 0;
                     }
 
                 else
-                    return zram[add & 0xFF];
+                    return zram[add & 0x7F];
             default:
                 return wram[add & 0x1FFF];
             }
@@ -130,15 +134,45 @@ struct MMU
         {
         case 0x0000:
         case 0x1000:
+            if (cartType == 2 || cartType == 3)
+            { //request external ram
+                if ((data & 0xF) == 0x0A)
+                    eExRam = 1;
+                else
+                    eExRam = 0;
+            }
             break;
         case 0x2000:
         case 0x3000:
+            if (cartType == 1 || cartType == 2 || cartType == 3)
+            { //rom bank set lower 5 bits
+                data &= 0x1F;
+                if (!data)
+                    data = 1;
+                romBk &= 0x60;
+                romBk |= data;
+                romOffset = romBk * 0x4000;
+            }
             break;
         case 0x4000:
         case 0x5000:
+            if (cartType == 1 || cartType == 2 || cartType == 3)
+            { 
+            if (mde)//ram bank
+                ramBk |= (data & 0xC0);
+            else//rom bank set upper 2 bits
+                romBk |= (data & 0xC0);
+            }
+            
             break;
         case 0x6000:
         case 0x7000:
+            if (cartType == 2 || cartType == 3)
+            { //mode switch
+                if (data)
+                    data = 1;
+                mde = data;
+            }
             break;
         case 0x8000:
         case 0x9000:
@@ -162,8 +196,8 @@ struct MMU
                 gpu.updateObj(add - 0xFEA0, data);
                 break;
             case 0xF00:
-                if (add ==0xFF50)
-                    b=!data;
+                if (add == 0xFF50)
+                    b = !data;
                 else if (add == 0xFFFF)
                     ie = data;
                 else if (add < 0xFF80) //Memory MAP
@@ -172,7 +206,7 @@ struct MMU
                     case 0x00:
                         if (add == 0xFF00)
                             joyp.write(data);
-                        else if (add = 0xFF0F)
+                        else if (add == 0xFF0F)
                             ifl = data;
                         else
                             cout << "Unable to write 0x" << add << endl;
@@ -184,11 +218,12 @@ struct MMU
                         gpu.wt(add, data);
 
                     default:
+                        cout << "Unable to write 0x" << add << endl;
                         break;
                     }
 
                 else
-                    zram[add & 0xFF] = data;
+                    zram[add & 0x7F] = data;
                 break;
             default:
                 wram[add & 0x1FFF] = data;

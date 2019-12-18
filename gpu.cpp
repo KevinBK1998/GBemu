@@ -263,13 +263,13 @@ struct GPU
                             SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
                             break;
                         case 1:
-                            SDL_SetRenderDrawColor(ren, 192, 192, 192, 0xFF);
+                            SDL_SetRenderDrawColor(ren, 0xC0, 0xC0, 0xC0, 0xFF);
                             break;
                         case 2:
-                            SDL_SetRenderDrawColor(ren, 96, 96, 96, 0xFF);
+                            SDL_SetRenderDrawColor(ren, 0x60, 0x60, 0x60, 0xFF);
                             break;
                         case 3:
-                            SDL_SetRenderDrawColor(ren, 0, 0, 0, 0xFF);
+                            SDL_SetRenderDrawColor(ren,0x00,0x00,0x00, 0xFF);
                             break;
                         }
                         SDL_RenderDrawPoint(ren, xco, line);
@@ -369,5 +369,9 @@ struct GPU
         int objno = add >> 2;
         if (objno < 40)
             objAttr[objno].update(add & 3, data);
+    }
+    void clear(){
+        SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
+		SDL_RenderClear(ren);
     }
 } gpu;
