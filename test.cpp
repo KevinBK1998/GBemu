@@ -1,41 +1,44 @@
 #include "cpu.cpp"
+uint16_t brkpt = 0x40;
+bool brk = true;
 void reset()
 {
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("red.gb");
+	mmu.load("tet.gb");
 }
 void step()
 {
-	if (cpu.reg.pc > 0x0100)
+	if (cpu.hlt)
+		cpu.m = 1;
+	else
 	{
-		mmu.b = 0;
+		cpu.map(mmu.read8(cpu.reg.pc++));
+		cpu.m_tot += cpu.m;
+		cpu.t_tot += cpu.t;
+		cpu.gpuStep();
 	}
-	uint8_t op = mmu.read8(cpu.reg.pc++);
-	cpu.map(op);
+	cpu.m = cpu.t = 0;
+	cpu.checkInt();
 	cpu.m_tot += cpu.m;
 	cpu.t_tot += cpu.t;
 	cpu.gpuStep();
-	// if (!mmu.b)
-	// {
-	// 	char ch;
-	// 	cout << "BIOS out:";
-	// 	cin >> ch;
-	// 	if (ch == 'c')
-	// 		cpu.printState();
-	// 	else if (ch == 'g')
-	// 		gpu.printState();
-	// 	else if (ch == 'm')
-	// 		mmu.dump();
-	// }
+	brk = true;
 }
 void frame()
 {
 	int nxtFrame = cpu.t_tot + 70224;
 	do
 	{
+		if (brkpt == cpu.reg.pc && brk)
+		{
+			cout << "BRKP:";
+			brk = false;
+			break;
+		}
 		step();
+
 	} while (cpu.t_tot < nxtFrame);
 }
 void floop()
@@ -43,7 +46,14 @@ void floop()
 	int i;
 	cin >> i;
 	for (; i > 0; i--)
+	{
+		if (brkpt == cpu.reg.pc)
+		{
+			brk = false;
+			break;
+		}
 		frame();
+	}
 }
 int main(int argc, char *args[])
 {
@@ -54,6 +64,12 @@ int main(int argc, char *args[])
 		cin >> ch;
 		if (ch == 's')
 		{
+			if (brkpt == cpu.reg.pc && brk)
+			{
+				cout << "BRKP:";
+				brk = false;
+				continue;
+			}
 			step();
 		}
 		else if (ch == 'S')
@@ -61,7 +77,15 @@ int main(int argc, char *args[])
 			int i;
 			cin >> i;
 			for (; i > 0; i--)
+			{
+				if (brkpt == cpu.reg.pc && brk)
+				{
+					cout << "BRKP:";
+					brk = false;
+					break;
+				}
 				step();
+			}
 		}
 		else if (ch == 'c')
 		{

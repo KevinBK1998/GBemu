@@ -28,6 +28,7 @@ struct MMU
     uint8_t wram[8192];
     uint8_t eram[8192];
     uint8_t zram[128];
+    uint8_t ie, ifl;
     void reset()
     {
         b = 1;
@@ -88,14 +89,20 @@ struct MMU
                 else
                     return 0;
             case 0xF00:
-                if (add < 0xFF80) //Memory MAP
+            if (add == 0xFF50)
+                    return !b;
+                if (add == 0xFFFF)
+                    return ie;
+                else if (add < 0xFF80) //Memory MAP
                     switch (add & 0xF0)
                     {
                     case 0x00:
                         if (add == 0xFF00)
                             return joyp.read();
+                        else if (add = 0xFF0F)
+                            return ifl;
                         else
-                        cout<<"Unable to read 0x"<<add<<endl;
+                            cout << "Unable to read 0x" << add << endl;
                         return 0;
                     case 0x40:
                     case 0x50:
@@ -152,18 +159,24 @@ struct MMU
             case 0xE00:
                 if (add < 0xFEA0)
                     gpu.oam[add & 0xFF] = data;
-                    gpu.updateObj(add-0xFEA0,data);
+                gpu.updateObj(add - 0xFEA0, data);
                 break;
             case 0xF00:
-                if (add < 0xFF80) //Memory MAP
+                if (add ==0xFF50)
+                    b=!data;
+                else if (add == 0xFFFF)
+                    ie = data;
+                else if (add < 0xFF80) //Memory MAP
                     switch (add & 0xF0)
                     {
                     case 0x00:
                         if (add == 0xFF00)
                             joyp.write(data);
+                        else if (add = 0xFF0F)
+                            ifl = data;
                         else
-                        cout<<"Unable to write 0x"<<add<<endl;
-                            break;
+                            cout << "Unable to write 0x" << add << endl;
+                        break;
                     case 0x40:
                     case 0x50:
                     case 0x60:

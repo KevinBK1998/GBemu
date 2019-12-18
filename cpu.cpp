@@ -2097,6 +2097,54 @@ struct CPU
         mmu.write8(reg.gethl(), mmu.read8(reg.gethl()));
         m = 3;
     }
+    //Interrupts
+    void checkInt()
+    {
+        if (ime && mmu.ie && mmu.ifl)
+        {
+            uint8_t fired = mmu.ie & mmu.ifl;
+            cout<<unsigned(mmu.ie)<<" "<<unsigned(mmu.ifl)<<endl;
+            ime = 0;hlt=0;
+            reg.sp -= 2;
+            mmu.write16(reg.sp, reg.pc);m = 3;t=12;
+            if (fired & 1)
+            {   cout<<"INT VB\n";
+                mmu.ifl &= 0xFE;
+                reg.pc = 0x40;
+            }
+            else if (fired & 2)
+            {
+                cout<<"INT LCD\n";
+                mmu.ifl &= 0xFD;
+                reg.pc = 0x48;
+            }
+            else if (fired & 4)
+            {
+                cout<<"INT TIM\n";
+                mmu.ifl &= 0xFB;
+                reg.pc = 0x50;
+            }
+            else if (fired & 8)
+            {
+                cout<<"INT SER\n";
+                mmu.ifl &= 0xF7;
+                reg.pc = 0x58;
+            }
+            else if (fired & 0x10)
+            {
+                cout<<"INT JP\n";
+                mmu.ifl &= 0xEF;
+                reg.pc = 0x60;
+            }else
+            {
+                ime=1;
+                reg.sp+=2;
+                m=0;t=0;
+            }
+            
+            
+        }
+    }
     //Implementation and Mapping
     void printState()
     {
@@ -2130,6 +2178,7 @@ struct CPU
                 { //if last line go to vblank after render screen
                     gpu.mode = 1;
                     gpu.renScreen();
+                    mmu.ifl|=1;
                 }
                 else
                 {
@@ -6235,7 +6284,7 @@ struct CPU
         reg.b += n;
         if (!reg.b)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void swap_c()
     {
@@ -6245,7 +6294,7 @@ struct CPU
         reg.c += n;
         if (!reg.c)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void swap_d()
     {
@@ -6255,7 +6304,7 @@ struct CPU
         reg.d += n;
         if (!reg.d)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void swap_e()
     {
@@ -6265,7 +6314,7 @@ struct CPU
         reg.e += n;
         if (!reg.e)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void swap_h()
     {
@@ -6275,7 +6324,7 @@ struct CPU
         reg.h += n;
         if (!reg.h)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void swap_l()
     {
@@ -6285,19 +6334,19 @@ struct CPU
         reg.l += n;
         if (!reg.l)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void swap_HL()
     {
         reg.f = 0;
-        uint8_t HL=mmu.read8(reg.gethl());
+        uint8_t HL = mmu.read8(reg.gethl());
         uint8_t n = (HL & 0xF) << 4;
         HL >>= 4;
         HL += n;
         if (!reg.b)
             reg.f |= 0x80;
-        mmu.write8(reg.gethl(),HL);
-        m=2;
+        mmu.write8(reg.gethl(), HL);
+        m = 2;
     }
     void swap_a()
     {
@@ -6307,7 +6356,7 @@ struct CPU
         reg.a += n;
         if (!reg.a)
             reg.f |= 0x80;
-        m=2;
+        m = 2;
     }
     void srl_b()
     {
