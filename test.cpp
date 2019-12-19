@@ -6,7 +6,7 @@ void reset()
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("tet.gb");
+	mmu.load("red.gb");
 }
 void step()
 {
@@ -104,6 +104,7 @@ int main(int argc, char *args[])
 		{
 			cpu.printState();
 			gpu.printState();
+			mmu.printState();
 		}
 		else if (ch == 'm')
 		{

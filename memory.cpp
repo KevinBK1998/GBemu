@@ -28,12 +28,15 @@ struct MMU
     uint8_t wram[8192];
     uint8_t eram[8192];
     uint8_t zram[128];
-    uint8_t ie, ifl, cartType, eExRam, romBk, ramBk, mde, romOffset, ramOffset;
+    uint8_t ie, ifl, cartType, eExRam, romBk, ramBk, mde;
+    uint16_t romOffset, ramOffset;
     void reset()
     {
         b = 1;
         ie = 0;
         ifl = 0;
+        ramOffset=0x0000;
+        romOffset=0x4000;
     }
     void load(char *name)
     {
@@ -51,6 +54,13 @@ struct MMU
             rom[i++] = c;
         }
         cartType = rom[0x147];
+        char nme[16];int ind;
+        for(ind=0;rom[0x134+ind]!=0;ind++)
+            nme[ind]=rom[0x134+ind];
+        nme[ind]='\0';
+        cout<<"Loaded:"<<nme<<endl;
+        cout<<"LIC:"<<(((rom[0x144]&0xf)<<4)+(rom[0x145]&0xf))<<endl;
+        cout<<"MBC:"<<unsigned(rom[0x146])<<endl;
     }
     uint8_t read8(uint16_t add)
     {
@@ -157,26 +167,31 @@ struct MMU
         case 0x4000:
         case 0x5000:
             if (cartType == 1 || cartType == 2 || cartType == 3)
-            { 
-            if (mde)//ram bank
-                ramBk |= (data & 0xC0);
-            else//rom bank set upper 2 bits
-                romBk |= (data & 0xC0);
+            {
+                if (mde)
+                { //ram bank
+                    ramBk |= (data & 0x3);
+                    ramOffset = ramBk * 0x2000;
+                }
+                else
+                { //rom bank set upper 2 bits
+                    data &= 0x3;
+                    data <<= 5;
+                    romBk &= 0x1F;
+                    romBk |= data;
+                    romOffset = romBk * 0x4000;
+                }
             }
-            
+
             break;
         case 0x6000:
         case 0x7000:
-            if (cartType == 2 || cartType == 3)
-            { //mode switch
-                if (data)
-                    data = 1;
-                mde = data;
-            }
+            if (cartType == 2 || cartType == 3)//mode switch
+                mde = data&1;
             break;
         case 0x8000:
         case 0x9000:
-            gpu.vram[add & 0x1FFF] = data; //??
+            gpu.vram[add & 0x1FFF] = data;
             break;
         case 0xA000:
         case 0xB000:
@@ -258,5 +273,13 @@ struct MMU
             }
             hB++;
         }
+    }
+    void printState(){
+        cout<<"MMU:\n";
+        cout<<"inBIOS:"<<b<<"\tcartType:"<<unsigned(cartType)<<endl;
+        cout<<"ROMbase:"<<romOffset<<"\tRAMbase:"<<ramOffset<<endl;
+        cout<<"IE:"<<unsigned(ie)<<"\tIF:"<<unsigned(ifl)<<endl;
+        cout<<"ERAM:"<<unsigned(eExRam)<<"\tMODE:"<<unsigned(mde)<<endl;
+        cout<<"ROMBank:"<<unsigned(romBk)<<"\tRAMBank:"<<unsigned(ramBk)<<endl;
     }
 } mmu;
