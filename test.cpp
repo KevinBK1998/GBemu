@@ -1,12 +1,12 @@
 #include "cpu.cpp"
-uint16_t brkpt = 0xe0;
+uint16_t brkpt = 0x200;
 bool brk = true;
 void reset()
 {
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("red.gb");
+	mmu.load("ttt.gb");
 }
 void step()
 {
@@ -109,6 +109,7 @@ int main(int argc, char *args[])
 		else if (ch == 'm')
 		{
 			mmu.dump();
+			mmu.dumprom();
 		}
 	} while (ch != 'e');
 	return 0;

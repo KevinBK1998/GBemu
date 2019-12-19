@@ -24,19 +24,19 @@ struct MMU
                                0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E, 0x3c, 0x42, 0xB9, 0xA5, 0xB9, 0xA5, 0x42, 0x4C,
                                0x21, 0x04, 0x01, 0x11, 0xA8, 0x00, 0x1A, 0x13, 0xBE, 0x20, 0xFE, 0x23, 0x7D, 0xFE, 0x34, 0x20,
                                0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50};
-    uint8_t rom[32768];
+    uint8_t rom[2097152]; //2MB
     uint8_t wram[8192];
-    uint8_t eram[8192];
+    uint8_t eram[32768]; //32KB
     uint8_t zram[128];
     uint8_t ie, ifl, cartType, eExRam, romBk, ramBk, mde;
-    uint16_t romOffset, ramOffset;
+    uint romOffset, ramOffset;
     void reset()
     {
         b = 1;
         ie = 0;
         ifl = 0;
-        ramOffset=0x0000;
-        romOffset=0x4000;
+        ramOffset = 0x0000;
+        romOffset = 0x4000;
     }
     void load(char *name)
     {
@@ -48,19 +48,18 @@ struct MMU
             exit(-1);
         }
         int i = 0;
-        while (i < 32768)
+        while (i < 2097152)
         {
             fin.get(c);
             rom[i++] = c;
         }
         cartType = rom[0x147];
-        char nme[16];int ind;
-        for(ind=0;rom[0x134+ind]!=0;ind++)
-            nme[ind]=rom[0x134+ind];
-        nme[ind]='\0';
-        cout<<"Loaded:"<<nme<<endl;
-        cout<<"LIC:"<<(((rom[0x144]&0xf)<<4)+(rom[0x145]&0xf))<<endl;
-        cout<<"MBC:"<<unsigned(rom[0x146])<<endl;
+        char nme[16];
+        int ind;
+        for (ind = 0; rom[0x134 + ind] != 0; ind++)
+            nme[ind] = rom[0x134 + ind];
+        nme[ind] = '\0';
+        cout << "Loaded:" << nme << endl;
     }
     uint8_t read8(uint16_t add)
     {
@@ -100,7 +99,10 @@ struct MMU
                 if (add < 0xFEA0)
                     return gpu.oam[add & 0xFF];
                 else
+                {
+                    cout << "Unable to read 0x" << add << endl;
                     return 0;
+                }
             case 0xF00:
                 if (add == 0xFF50)
                     return !b;
@@ -182,12 +184,11 @@ struct MMU
                     romOffset = romBk * 0x4000;
                 }
             }
-
             break;
         case 0x6000:
         case 0x7000:
-            if (cartType == 2 || cartType == 3)//mode switch
-                mde = data&1;
+            if (cartType == 2 || cartType == 3) //mode switch
+                mde = data & 1;
             break;
         case 0x8000:
         case 0x9000:
@@ -195,7 +196,7 @@ struct MMU
             break;
         case 0xA000:
         case 0xB000:
-            eram[add & 0x1FFF] = data; //not complete
+            eram[ramOffset + add & 0x1FFF] = data;
             break;
         case 0xC000:
         case 0xD000:
@@ -208,6 +209,8 @@ struct MMU
             case 0xE00:
                 if (add < 0xFEA0)
                     gpu.oam[add & 0xFF] = data;
+                else
+                    cout << "Unable to write 0x" << add << endl;
                 gpu.updateObj(add - 0xFEA0, data);
                 break;
             case 0xF00:
@@ -231,12 +234,11 @@ struct MMU
                     case 0x60:
                     case 0x70: //GPU reg
                         gpu.wt(add, data);
-
+                        break;
                     default:
                         cout << "Unable to write 0x" << add << endl;
                         break;
                     }
-
                 else
                     zram[add & 0x7F] = data;
                 break;
@@ -274,12 +276,37 @@ struct MMU
             hB++;
         }
     }
-    void printState(){
-        cout<<"MMU:\n";
-        cout<<"inBIOS:"<<b<<"\tcartType:"<<unsigned(cartType)<<endl;
-        cout<<"ROMbase:"<<romOffset<<"\tRAMbase:"<<ramOffset<<endl;
-        cout<<"IE:"<<unsigned(ie)<<"\tIF:"<<unsigned(ifl)<<endl;
-        cout<<"ERAM:"<<unsigned(eExRam)<<"\tMODE:"<<unsigned(mde)<<endl;
-        cout<<"ROMBank:"<<unsigned(romBk)<<"\tRAMBank:"<<unsigned(ramBk)<<endl;
+    void dumprom()
+    {
+        ofstream fout("rom.txt");
+        if (!fout)
+        {
+            cout << "Error Opening File\n";
+            exit(-1);
+        }
+        int hB = 0;
+        int size = (0x80 << rom[0x148]);
+        fout << "Size:" << unsigned(rom[0x148]) << hex << uppercase;
+        while (hB < size)
+        {
+            fout << "\n"
+                 << hB << ":";
+            for (int hb = 0; hb <= 0xF; hb++)
+            {
+                fout << endl;
+                for (int lb = 0; lb <= 0xF; lb++)
+                    fout << " " << unsigned(rom[(hB << 8) + (hb << 4) + lb]);
+            }
+            hB++;
+        }
+    }
+    void printState()
+    {
+        cout << "MMU:\n";
+        cout << "inBIOS:" << b << "\tcartType:" << unsigned(cartType) << endl;
+        cout << "ROMbase:" << romOffset << "\tRAMbase:" << ramOffset << endl;
+        cout << "IE:" << unsigned(ie) << "\tIF:" << unsigned(ifl) << endl;
+        cout << "ERAM:" << unsigned(eExRam) << "\tMODE:" << unsigned(mde) << endl;
+        cout << "ROMBank:" << unsigned(romBk) << "\tRAMBank:" << unsigned(ramBk) << endl;
     }
 } mmu;
