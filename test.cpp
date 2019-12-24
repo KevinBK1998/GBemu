@@ -1,12 +1,15 @@
 #include "cpu.cpp"
 uint16_t brkpt = 0x200;
 bool brk = true;
-void reset()
+void reset(char *name)
 {
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
-	mmu.load("ttt.gb");
+	if (name[0] != '.')
+		mmu.load(name);
+	else
+		mmu.load("ttt.gb");
 }
 void step()
 {
@@ -23,8 +26,8 @@ void step()
 	cpu.checkInt();
 	cpu.m_tot += cpu.m;
 	cpu.t_tot += cpu.t;
-	if(cpu.m)
-	cpu.gpuStep();
+	if (cpu.m)
+		cpu.gpuStep();
 	brk = true;
 }
 void frame()
@@ -34,7 +37,7 @@ void frame()
 	{
 		if (brkpt == cpu.reg.pc && brk)
 		{
-			cout << "BRKP:";
+			//cout << "BRKP:";
 			brk = false;
 			break;
 		}
@@ -58,11 +61,11 @@ void floop()
 }
 int main(int argc, char *args[])
 {
-	char ch;
-	reset();
+	char ch = 'c';
+	reset(args[argc - 1]);
 	do
 	{
-		cin >> ch;
+		//cin >> ch;
 		if (ch == 's')
 		{
 			if (brkpt == cpu.reg.pc && brk)
@@ -98,7 +101,7 @@ int main(int argc, char *args[])
 		}
 		else if (ch == 'e')
 		{
-			reset();
+			reset(".");
 		}
 		else if (ch == 'r')
 		{
@@ -110,6 +113,7 @@ int main(int argc, char *args[])
 		{
 			mmu.dump();
 			mmu.dumprom();
+			mmu.dumpmap();
 		}
 	} while (ch != 'e');
 	return 0;

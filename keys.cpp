@@ -29,7 +29,7 @@ struct keys
     {
         col = data & 0x30;
     }
-    void input(SDL_Event &e)
+    int input(SDL_Event &e)
     {
         if (e.type == SDL_KEYDOWN)
         {
@@ -60,6 +60,7 @@ struct keys
                 kdown('l');
                 break;
             }
+            return 1;
         }
         else if (e.type == SDL_KEYUP)
         {
@@ -90,6 +91,7 @@ struct keys
                 kup('l');
                 break;
             }
+            return 0;
         }
     }
     void kdown(char in)

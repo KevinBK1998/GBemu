@@ -4,6 +4,7 @@
 #include <fstream>
 #include <stdint.h>
 #include "gpu.cpp"
+#include "apu.cpp"
 using namespace std;
 struct MMU
 {
@@ -99,10 +100,7 @@ struct MMU
                 if (add < 0xFEA0)
                     return gpu.oam[add & 0xFF];
                 else
-                {
-                    cout << "Unable to read 0x" << add << endl;
-                    return 0;
-                }
+                    return '-';
             case 0xF00:
                 if (add == 0xFF50)
                     return !b;
@@ -117,16 +115,20 @@ struct MMU
                         else if (add == 0xFF0F)
                             return ifl;
                         else
-                            cout << "Unable to read 0x" << add << endl;
-                        return 0;
+                            //cout << "Unable to read 0x" << add << endl;
+                            return '-';
+                    case 0x10: //Sound reg
+                    case 0x20:
+                    case 0x30:
+                        return apu.rd(add);
                     case 0x40:
                     case 0x50:
                     case 0x60:
                     case 0x70: //GPU reg
                         return gpu.rd(add);
                     default:
-                        cout << "Unable to read 0x" << add << endl;
-                        return 0;
+                        //cout << "Unable to read 0x" << add << endl;
+                        return '-';
                     }
 
                 else
@@ -210,7 +212,7 @@ struct MMU
                 if (add < 0xFEA0)
                     gpu.oam[add & 0xFF] = data;
                 else
-                    cout << "Unable to write 0x" << add << endl;
+                    cout << "Access to 0x" << add << "  Denied\n";
                 gpu.updateObj(add - 0xFEA0, data);
                 break;
             case 0xF00:
@@ -228,6 +230,11 @@ struct MMU
                             ifl = data;
                         else
                             cout << "Unable to write 0x" << add << endl;
+                        break;
+                    case 0x10: //Sound reg
+                    case 0x20:
+                    case 0x30:
+                        apu.wt(add, data);
                         break;
                     case 0x40:
                     case 0x50:
@@ -270,7 +277,64 @@ struct MMU
             for (int hb = 0; hb <= 0xF; hb++)
             {
                 for (int lb = 0; lb <= 0xF; lb++)
-                    fout << " " << unsigned(read8((hB << 8) + (hb << 4) + lb));
+                {
+                    uint8_t v = read8((hB << 8) + (hb << 4) + lb);
+                    if (v == '-')
+                        fout << v << " ";
+                    else
+                        fout << unsigned(v) << " ";
+                }
+                fout << endl;
+            }
+            hB++;
+        }
+    }
+    void dumpset()
+    {
+        ofstream fout("set.txt");
+        if (!fout)
+        {
+            cout << "Error Opening File\n";
+            exit(-1);
+        }
+        int hB = 0x80;
+        while (hB < 0xA0)
+        {
+            fout << hex << uppercase << "//" << hB << dec << ":\n";
+            for (int hb = 0; hb <= 0xF; hb++)
+            {
+                for (int lb = 0; lb <= 0xF; lb++)
+                {
+                    uint8_t v = read8((hB << 8) + (hb << 4) + lb);
+                    fout << unsigned(v) << ",";
+                }
+                fout << endl;
+            }
+            hB++;
+        }
+    }
+    void dumpmap()
+    {
+        ofstream fout("map.txt");
+        if (!fout)
+        {
+            cout << "Error Opening File\n";
+            exit(-1);
+        }
+        int hB = 0x98;
+        while (hB < 0x9C)
+        {
+            fout << hex << uppercase << "//" << hB << ":\n";
+            for (int hb = 0; hb <= 0xF; hb += 2)
+            {
+                for (int lb = 0; lb < 0x20; lb++)
+                {
+                    uint8_t v = read8((hB << 8) + (hb << 4) + lb);
+                    if ((v > 0x1F && v <=0x7F))
+                        fout << v << " ";
+                    else
+                        fout << unsigned(v) << " ";
+                }
                 fout << endl;
             }
             hB++;

@@ -1450,11 +1450,8 @@ struct CPU
     }
     void xor_a()
     {
-        uint8_t res = reg.a ^ reg.a;
-        reg.f = 0;
-        if (!res)
-            reg.f |= 0x80;
-        reg.a = res;
+        reg.a=0;
+        reg.f=0x80;
         m = 1;
     }
     //Bx Instructions
@@ -2103,7 +2100,7 @@ struct CPU
         if (ime && mmu.ie && mmu.ifl)
         {
             uint8_t fired = mmu.ie & mmu.ifl;
-            cout << "IE:0x"<<unsigned(mmu.ie) << " IF:0x" << unsigned(mmu.ifl) << endl;
+            cout << "IE:0x" << unsigned(mmu.ie) << " IF:0x" << unsigned(mmu.ifl) << endl;
             ime = 0;
             hlt = 0;
             reg.sp -= 2;
@@ -2171,7 +2168,7 @@ struct CPU
     void gpuStep()
     {
         gpu.clk += t;
-        switch (gpu.mode)
+        switch (gpu.stat.mode)
         {
         case 0:
             if (gpu.clk >= 204)
@@ -2180,15 +2177,16 @@ struct CPU
                 gpu.line++;
                 if (gpu.line == 143)
                 { //if last line go to vblank after render screen
-                    gpu.mode = 1;
+                    gpu.stat.mode = 1;
                     if (!gpu.ctrl.lcdOn)
                         gpu.clear();
-                    gpu.renScreen();
-                    mmu.ifl |= 1;
+                    if (gpu.renScreen())
+                        mmu.ifl |= 0x10;//Joypad
+                    mmu.ifl |= 1;//Vblank
                 }
                 else
                 {
-                    gpu.mode = 2;
+                    gpu.stat.mode = 2;
                 }
             }
             break;
@@ -2199,7 +2197,7 @@ struct CPU
                 gpu.line++;
                 if (gpu.line == 153)
                 { //if vblank done go to oam(repeat)
-                    gpu.mode = 2;
+                    gpu.stat.mode = 2;
                     gpu.line = 0;
                 }
             }
@@ -2207,14 +2205,14 @@ struct CPU
         case 2:
             if (gpu.clk >= 80)
             { //if oam done go to vram
-                gpu.mode = 3;
+                gpu.stat.mode = 3;
                 gpu.clk = 0;
             }
             break;
         case 3:
             if (gpu.clk >= 172)
             { //if vram done scanline and enter hblank
-                gpu.mode = 0;
+                gpu.stat.mode = 0;
                 gpu.clk = 0;
                 if (gpu.ctrl.lcdOn)
                     gpu.scanline();
@@ -2280,7 +2278,7 @@ struct CPU
             ldb_n();
             break;
         case 0x07:
-            cout << "SLAC A\n";
+            cout << "RLC A\n";
             rlc_a();
             break;
         case 0x08:

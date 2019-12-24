@@ -43,7 +43,7 @@ struct GPU
 {
     //GPU registers
     uint8_t bgpal, scx, scy, line, objpal[2];
-    struct CTRL
+    struct LCDC
     {
         bool lcdOn, winMap, winOn, bgSet, bgMap, sprSize, sprOn, bgOn;
         uint8_t flags2byte()
@@ -62,6 +62,19 @@ struct GPU
             bgOn = (data & 1);
         }
     } ctrl;
+    struct STAT
+    {
+        uint8_t intSelect, match, mode;
+        uint8_t flags2byte()
+        {
+            return (intSelect << 3 + match << 2 + mode);
+        }
+        void byte2flags(uint8_t data)
+        {
+            intSelect = (data & 0x78);
+            match = ((data & 4) != 0);
+        }
+    } stat;
     /*
     LCD&GPU control 0xFF40
                 7      |6           |5     |4          |3          |2                         |1      |0
@@ -78,7 +91,7 @@ struct GPU
     OBJM objAttr[40];
     uint8_t row[160];
     //flags
-    int mode, clk;
+    int clk;
     //graphic components
     SDL_Window *win;
     SDL_Renderer *ren;
@@ -152,7 +165,7 @@ struct GPU
         {
             //Main loop flag
             quit = false;
-            mode = 2;
+            stat.mode = 2;
             clk = line = 0;
             bgpal = 0xE4;
             //Clear screen
@@ -269,7 +282,7 @@ struct GPU
                             SDL_SetRenderDrawColor(ren, 0x60, 0x60, 0x60, 0xFF);
                             break;
                         case 3:
-                            SDL_SetRenderDrawColor(ren,0x00,0x00,0x00, 0xFF);
+                            SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x00, 0xFF);
                             break;
                         }
                         SDL_RenderDrawPoint(ren, xco, line);
@@ -285,7 +298,7 @@ struct GPU
         if (ctrl.sprOn)
             spriteScan();
     }
-    void renScreen()
+    int renScreen()
     {
         //Event handler
         SDL_Event e;
@@ -299,7 +312,8 @@ struct GPU
         //Handle events on queue
         if (SDL_PollEvent(&e) != 0)
         {
-            joyp.input(e);
+            if (joyp.input(e))
+                return 1;
             //User requests quit
             if (e.type == SDL_QUIT)
             {
@@ -307,6 +321,7 @@ struct GPU
             }
         }
         SDL_RenderPresent(ren);
+        return 0;
     }
     uint8_t rd(uint16_t add)
     {
@@ -314,16 +329,17 @@ struct GPU
         {
         case 0x40:
             return ctrl.flags2byte();
+        case 0x41:
+            return stat.flags2byte();
         case 0x42:
-
             return scy;
         case 0x43:
             return scx;
         case 0x44:
             return line;
         default:
-            std::cout << "GPU Read error 0x" << add << "\n";
-            return 0;
+            //std::cout << "GPU Read error:0x" << add << "\n";
+            return '-';
         }
     }
     void wt(uint16_t add, uint8_t data)
@@ -331,7 +347,17 @@ struct GPU
         switch (add & 0xFF)
         {
         case 0x40:
-            ctrl.byte2flags(data);
+            if (ctrl.lcdOn)
+            {
+                ctrl.byte2flags(data);
+                if (!ctrl.lcdOn)
+                    line = 0;
+            }
+            else
+                ctrl.byte2flags(data);
+            break;
+        case 0x41:
+            stat.byte2flags(data);
             break;
         case 0x42:
             scy = data;
@@ -349,7 +375,7 @@ struct GPU
             objpal[1] = data;
             break;
         default:
-            std::cout << "GPU Write error 0x" << add << "\n";
+            std::cout << "GPU Write error:0x" << add << "\n";
             break;
         }
     }
@@ -370,8 +396,9 @@ struct GPU
         if (objno < 40)
             objAttr[objno].update(add & 3, data);
     }
-    void clear(){
+    void clear()
+    {
         SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
-		SDL_RenderClear(ren);
+        SDL_RenderClear(ren);
     }
 } gpu;
