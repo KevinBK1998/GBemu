@@ -114,6 +114,7 @@ int main(int argc, char *args[])
 			mmu.dump();
 			mmu.dumprom();
 			mmu.dumpmap();
+			gpu.dumpoam();
 		}
 	} while (ch != 'e');
 	return 0;

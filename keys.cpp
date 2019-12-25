@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <iostream>
+#include<stdlib.h>
 using namespace std;
 struct keys
 {
@@ -58,6 +59,10 @@ struct keys
                 break;
             case SDLK_LEFT:
                 kdown('l');
+                break;
+            case SDLK_ESCAPE:
+                SDL_Quit();
+                exit(1);
                 break;
             }
             return 1;

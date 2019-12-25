@@ -213,7 +213,7 @@ struct MMU
                     gpu.oam[add & 0xFF] = data;
                 else
                     cout << "Access to 0x" << add << "  Denied\n";
-                gpu.updateObj(add - 0xFEA0, data);
+                gpu.updateObj(add & 0xFF, data);
                 break;
             case 0xF00:
                 if (add == 0xFF50)
@@ -330,7 +330,7 @@ struct MMU
                 for (int lb = 0; lb < 0x20; lb++)
                 {
                     uint8_t v = read8((hB << 8) + (hb << 4) + lb);
-                    if ((v > 0x1F && v <=0x7F))
+                    if ((v > 0x1F && v <= 0x7F))
                         fout << v << " ";
                     else
                         fout << unsigned(v) << " ";

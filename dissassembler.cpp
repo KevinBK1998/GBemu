@@ -487,6 +487,11 @@ int main(int argc, char *args[])
                 reg.pc++;
                 m = 2;
                 break;
+            case 0x44:
+                cout << "LD B,H\n";
+                reg.b = reg.h;
+                m = 1;
+                break;
             case 0x47:
                 cout << "LD B,A\n";
                 reg.b = reg.a;
@@ -888,6 +893,12 @@ int main(int argc, char *args[])
                 reg.sp += 2;
                 m = 3;
                 break;
+            case 0xD5:
+                cout << "PUSH DE\n";
+                reg.sp -= 2;
+                mmu.write16(reg.sp, reg.getde());
+                m = 3;
+                break;
             case 0xD8:
                 cout << "RET C\n";
                 m = 1;
@@ -902,6 +913,12 @@ int main(int argc, char *args[])
                 cout << "LD [0xFF 0x" << unsigned(mmu.read8(reg.pc)) << "],A\n";
                 mmu.write8(0xFF00 + mmu.read8(reg.pc), reg.a);
                 reg.pc++;
+                m = 3;
+                break;
+            case 0xE1:
+                cout << "POP HL\n";
+                reg.sethl(mmu.read16(reg.sp));
+                reg.sp += 2;
                 m = 3;
                 break;
             case 0xE2:
@@ -989,6 +1006,7 @@ int main(int argc, char *args[])
                 mmu.dump();
                 mmu.dumpset();
                 mmu.dumpmap();
+                gpu.dumpoam();
                 cout << "Unknown Instruction 0x" << unsigned(op) << "\n";
                 exit(1);
             }

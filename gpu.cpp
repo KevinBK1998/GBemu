@@ -246,7 +246,7 @@ struct GPU
         for (int i = 0; i < 40; i++)
         {
             uint8_t y = objAttr[i].y;
-            if (y <= line && (y + 8) < line)
+            if (y <= line && (y + 8) > line)
             {
                 int n = objAttr[i].opt.palNo;
                 uint8_t tile = objAttr[i].tile;
@@ -260,11 +260,24 @@ struct GPU
                     lb = vram[(tile << 4) + ((line - y) << 1)];
                     hb = vram[(tile << 4) + ((line - y) << 1) + 1];
                 }
+                // if (tile)
+                // {
+                //     cout << "tile:" << unsigned(tile) << " row:" << unsigned(line - y) << " hb:" << unsigned(hb) << " lb:" << unsigned(lb) << endl;
+                //     cin >> n;
+                // }
                 for (int x = 0; x < 8; x++)
                     if (objAttr[i].opt.xf)
                         tlrw[x] = ((lb >> x) & 1) + 2 * (((hb >> x) & 1));
                     else
                         tlrw[x] = ((lb >> (7 - x)) & 1) + 2 * (((hb >> (7 - x)) & 1));
+                // if (tile)
+                // {
+                //     cout << "Line:" << unsigned(line) << endl;
+                //     for (int x = 0; x < 8; x++)
+                //         cout << unsigned(tlrw[x]) << " ";
+                //     cout << endl;
+                //     cin >> n;
+                // }
                 for (int x = 0; x < 8; x++)
                 {
                     uint8_t xco = objAttr[i].x;
@@ -285,7 +298,7 @@ struct GPU
                             SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x00, 0xFF);
                             break;
                         }
-                        SDL_RenderDrawPoint(ren, xco, line);
+                        SDL_RenderDrawPoint(ren, xco + x, line);
                     }
                 }
             }
@@ -400,5 +413,28 @@ struct GPU
     {
         SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(ren);
+    }
+    void dumpoam()
+    {
+        ofstream fout("oam.txt");
+        if (!fout)
+        {
+            cout << "Error Opening File\n";
+            exit(-1);
+        }
+        int i = 0;
+        fout << hex << uppercase;
+        while (i < 40)
+        {
+            fout << i << ":\n";
+            for (int j = 0; j < 4; j++)
+            {
+
+                uint8_t v = oam[i * 4 + j];
+                fout << unsigned(v) << " ";
+            }
+            i++;
+            fout << endl;
+        }
     }
 } gpu;
