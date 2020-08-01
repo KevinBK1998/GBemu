@@ -11,6 +11,7 @@ void reset(char *name)
     gpu.reset();
     mmu.reset();
     reg.reset();
+    joyp.reset();
     m = m_tot = 0;
     ime = 1;
     if (name[0] != '.')
@@ -46,9 +47,20 @@ void gpuStep()
                 gpu.stat.mode = 1;
                 if (!gpu.ctrl.lcdOn)
                     gpu.clear();
-                if (gpu.renScreen())
+                int i = gpu.renScreen();
+                if (i)
                     mmu.ifl |= 0x10; //Joypad
-                mmu.ifl |= 1;        //Vblank
+                if (i == -1)
+                {
+                    printState();
+                    mmu.dumpmap();
+                    mmu.dumpset();
+                    gpu.dumpoam();
+                    mmu.dump();
+                    cout<<"Exiting Emulator\n";
+                    exit(1);
+                }
+                mmu.ifl |= 1; //Vblank
             }
             else
             {
@@ -90,7 +102,7 @@ void gpuStep()
 }
 void checkInt()
 {
-    if (ime && mmu.ie && mmu.ifl)
+    if (ime && (mmu.ie & mmu.ifl))
     {
         uint8_t fired = mmu.ie & mmu.ifl;
         cout << "IE:0x" << unsigned(mmu.ie) << " IF:0x" << unsigned(mmu.ifl) << endl;
@@ -258,6 +270,16 @@ int main(int argc, char *args[])
                 reg.pc++;
                 m = 2;
                 break;
+            case 0x0F:
+                cout << "RRC A\n";
+                reg.f = 0;
+                reg.f |= ((reg.a & 0x1) << 4);
+                reg.a >>= 1;
+                reg.a += ((reg.f & 0x10) << 3);
+                if (!reg.a)
+                    reg.f |= 0x80;
+                m = 1;
+                break;
             case 0x11:
                 cout << "LD DE,0x" << unsigned(mmu.read16(reg.pc)) << endl;
                 reg.setde(mmu.read16(reg.pc));
@@ -330,6 +352,17 @@ int main(int argc, char *args[])
                 reg.setde(reg.getde() - 1);
                 m = 1;
                 break;
+            case 0x1C:
+                cout << "INC E\n";
+                result = reg.e + 1;
+                reg.f &= 0x10;
+                if (!result)
+                    reg.f |= 0x80;
+                if ((reg.e & 0xF) + 1 > 0xF)
+                    reg.f |= 0x20;
+                reg.e = result;
+                m = 1;
+                break;
             case 0x1D:
                 cout << "DEC E\n";
                 result = reg.e - 1;
@@ -386,6 +419,18 @@ int main(int argc, char *args[])
                 reg.h = result;
                 m = 1;
                 break;
+            case 0x25:
+                cout << "DEC H\n";
+                result = reg.h - 1;
+                reg.f &= 0x10;
+                if (!result)
+                    reg.f |= 0x80;
+                reg.f |= 0x40;
+                if ((reg.h & 0xF) - 1 < 0)
+                    reg.f |= 0x20;
+                reg.h = result;
+                m = 1;
+                break;
             case 0x26:
                 cout << "LD H,0x" << unsigned(mmu.read8(reg.pc)) << endl;
                 reg.h = mmu.read8(reg.pc);
@@ -413,9 +458,26 @@ int main(int argc, char *args[])
                 reg.sethl(result);
                 m = 3;
                 break;
+            case 0x2A:
+                cout << "LDI A,[HL]\n";
+                reg.a = mmu.read8(reg.gethl());
+                reg.sethl(reg.gethl() + 1);
+                m = 2;
+                break;
             case 0x2B:
                 cout << "DEC HL\n";
                 reg.sethl(reg.gethl() - 1);
+                m = 1;
+                break;
+            case 0x2C:
+                cout << "INC L\n";
+                result = reg.l + 1;
+                reg.f &= 0x10;
+                if (!result)
+                    reg.f |= 0x80;
+                if ((reg.l & 0xF) + 1 > 0xF)
+                    reg.f |= 0x20;
+                reg.l = result;
                 m = 1;
                 break;
             case 0x2E:
@@ -452,6 +514,23 @@ int main(int argc, char *args[])
                 reg.sethl(reg.gethl() - 1);
                 m = 2;
                 break;
+            case 0x34:
+                cout << "INC [HL]\n";
+                result = mmu.read8(reg.gethl()) + 1;
+                reg.f &= 0x10;
+                if (!result)
+                    reg.f |= 0x80;
+                if ((mmu.read8(reg.gethl()) & 0xF) + 1 > 0xF)
+                    reg.f |= 0x20;
+                mmu.write8(reg.gethl(), result);
+                m = 3;
+                break;
+            case 0x36:
+                cout << "LD [HL],0x" << unsigned(mmu.read8(reg.pc)) << endl;
+                mmu.write8(reg.gethl(), mmu.read8(reg.pc));
+                reg.pc++;
+                m = 3;
+                break;
             case 0x37:
                 cout << "SCF\n";
                 reg.f &= 0x80;
@@ -468,6 +547,17 @@ int main(int argc, char *args[])
                     reg.f |= 0x10;
                 reg.sethl(res);
                 m = 3;
+                break;
+            case 0x3C:
+                cout << "INC A\n";
+                result = reg.a + 1;
+                reg.f &= 0x10;
+                if (!result)
+                    reg.f |= 0x80;
+                if ((reg.a & 0xF) + 1 > 0xF)
+                    reg.f |= 0x20;
+                reg.a = result;
+                m = 1;
                 break;
             case 0x3D:
                 cout << "DEC A\n";
@@ -512,6 +602,11 @@ int main(int argc, char *args[])
                 reg.d = reg.l;
                 m = 1;
                 break;
+            case 0x56:
+                cout << "LD D,[HL]\n";
+                reg.d = mmu.read8(reg.gethl());
+                m = 2;
+                break;
             case 0x57:
                 cout << "LD D,A\n";
                 reg.d = reg.a;
@@ -521,6 +616,11 @@ int main(int argc, char *args[])
                 cout << "LD E,L\n";
                 reg.e = reg.l;
                 m = 1;
+                break;
+            case 0x5E:
+                cout << "LD E,[HL]\n";
+                reg.e = mmu.read8(reg.gethl());
+                m = 2;
                 break;
             case 0x5F:
                 cout << "LD E,A\n";
@@ -542,6 +642,11 @@ int main(int argc, char *args[])
                 reg.l = reg.a;
                 m = 1;
                 break;
+            case 0x73:
+                cout << "LD [HL],E\n";
+                mmu.write8(reg.gethl(), reg.e);
+                m = 2;
+                break;
             case 0x77:
                 cout << "LD [HL],A\n";
                 mmu.write8(reg.gethl(), reg.a);
@@ -550,6 +655,11 @@ int main(int argc, char *args[])
             case 0x78:
                 cout << "LD A,B\n";
                 reg.a = reg.b;
+                m = 1;
+                break;
+            case 0x79:
+                cout << "LD A,C\n";
+                reg.a = reg.c;
                 m = 1;
                 break;
             case 0x7A:
@@ -577,6 +687,19 @@ int main(int argc, char *args[])
                 reg.a = mmu.read8(reg.gethl());
                 m = 2;
                 break;
+            case 0x80:
+                cout << "ADD A,B\n";
+                res = reg.a + reg.b;
+                reg.f = 0;
+                if (!(res & 0xFF))
+                    reg.f |= 0x80;
+                if ((reg.a & 0xF) + (reg.b & 0xF) > 0xF)
+                    reg.f |= 0x20;
+                if (res > 0xFF)
+                    reg.f |= 0x10;
+                reg.a = res;
+                m = 1;
+                break;
             case 0x86:
                 cout << "ADD A,[HL]\n";
                 res = reg.a + mmu.read8(reg.gethl());
@@ -597,6 +720,19 @@ int main(int argc, char *args[])
                 if (!(res & 0xFF))
                     reg.f |= 0x80;
                 if ((reg.a & 0xF) + (reg.a & 0xF) > 0xF)
+                    reg.f |= 0x20;
+                if (res > 0xFF)
+                    reg.f |= 0x10;
+                reg.a = res;
+                m = 1;
+                break;
+            case 0x89:
+                cout << "ADC A,C\n";
+                res = reg.a + reg.c + ((reg.f & 0x10) != 0);
+                reg.f = 0;
+                if (!(res & 0xFF))
+                    reg.f |= 0x80;
+                if ((reg.a & 0xF) + (reg.c & 0xF) + ((reg.f & 0x10) != 0) > 0xF)
                     reg.f |= 0x20;
                 if (res > 0xFF)
                     reg.f |= 0x10;
@@ -665,6 +801,15 @@ int main(int argc, char *args[])
                 reg.a = res;
                 m = 1;
                 break;
+            case 0xA1:
+                cout << "AND C\n";
+                result = reg.a & reg.c;
+                reg.f = 0x20;
+                if (!result)
+                    reg.f |= 0x80;
+                reg.a = result;
+                m = 1;
+                break;
             case 0xA2:
                 cout << "AND D\n";
                 result = reg.a & reg.d;
@@ -678,6 +823,49 @@ int main(int argc, char *args[])
                 cout << "AND E\n";
                 result = reg.a & reg.e;
                 reg.f = 0x20;
+                if (!result)
+                    reg.f |= 0x80;
+                reg.a = result;
+                m = 1;
+                break;
+            case 0xA7:
+                cout << "AND A\n";
+                reg.f = 0x20;
+                if (!reg.a)
+                    reg.f |= 0x80;
+                m = 1;
+                break;
+            case 0xA8:
+                cout << "XOR A,B\n";
+                result = reg.a ^ reg.b;
+                reg.f = 0;
+                if (!result)
+                    reg.f |= 0x80;
+                reg.a = result;
+                m = 1;
+                break;
+            case 0xA9:
+                cout << "XOR A,C\n";
+                result = reg.a ^ reg.c;
+                reg.f = 0;
+                if (!result)
+                    reg.f |= 0x80;
+                reg.a = result;
+                m = 1;
+                break;
+            case 0xAA:
+                cout << "XOR A,D\n";
+                result = reg.a ^ reg.d;
+                reg.f = 0;
+                if (!result)
+                    reg.f |= 0x80;
+                reg.a = result;
+                m = 1;
+                break;
+            case 0xAB:
+                cout << "XOR A,E\n";
+                result = reg.a ^ reg.e;
+                reg.f = 0;
                 if (!result)
                     reg.f |= 0x80;
                 reg.a = result;
@@ -844,6 +1032,50 @@ int main(int argc, char *args[])
                         reg.f |= 0x80;
                     m = 2;
                     break;
+                case 0x12:
+                    cout << "RL D\n";
+                    res = ((reg.f & 0x10) != 0);
+                    reg.f = 0;
+                    reg.f |= ((reg.d & 0x80) >> 3);
+                    reg.d <<= 1;
+                    reg.d += res;
+                    if (!reg.d)
+                        reg.f |= 0x80;
+                    m = 2;
+                    break;
+                case 0x13:
+                    cout << "RL E\n";
+                    res = ((reg.f & 0x10) != 0);
+                    reg.f = 0;
+                    reg.f |= ((reg.e & 0x80) >> 3);
+                    reg.e <<= 1;
+                    reg.e += res;
+                    if (!reg.e)
+                        reg.f |= 0x80;
+                    m = 2;
+                    break;
+                case 0x18:
+                    cout << "RR B\n";
+                    res = ((reg.f & 0x10) != 0);
+                    reg.f = 0;
+                    reg.f |= ((reg.b & 0x1) << 4);
+                    reg.b >>= 1;
+                    reg.b += (res << 7);
+                    if (!reg.b)
+                        reg.f |= 0x80;
+                    m = 2;
+                    break;
+                case 0x19:
+                    cout << "RR C\n";
+                    res = ((reg.f & 0x10) != 0);
+                    reg.f = 0;
+                    reg.f |= ((reg.c & 0x1) << 4);
+                    reg.c >>= 1;
+                    reg.c += (res << 7);
+                    if (!reg.c)
+                        reg.f |= 0x80;
+                    m = 2;
+                    break;
                 case 0x37:
                     cout << "SWAP A\n";
                     reg.f = 0;
@@ -854,11 +1086,27 @@ int main(int argc, char *args[])
                         reg.f |= 0x80;
                     m = 2;
                     break;
+                case 0x6F:
+                    cout << "BIT 5,A\n";
+                    reg.f &= 0x10;
+                    reg.f |= 0x20;
+                    if (!(reg.a >> 5))
+                        reg.f |= 0x80;
+                    m = 2;
+                    break;
                 case 0x7C:
                     cout << "BIT 7,H\n";
                     reg.f &= 0x10;
                     reg.f |= 0x20;
                     if (!(reg.h >> 7))
+                        reg.f |= 0x80;
+                    m = 2;
+                    break;
+                case 0x77:
+                    cout << "BIT 6,A\n";
+                    reg.f &= 0x10;
+                    reg.f |= 0x20;
+                    if (!(reg.a >> 6))
                         reg.f |= 0x80;
                     m = 2;
                     break;
@@ -893,6 +1141,19 @@ int main(int argc, char *args[])
                 reg.sp += 2;
                 m = 3;
                 break;
+            case 0xD4:
+                cout << "CALL NC,0x" << mmu.read16(reg.pc) << endl;
+                nn = mmu.read16(reg.pc);
+                reg.pc += 2;
+                m = 3; //doubt
+                if (!(reg.f & 0x10))
+                {
+                    reg.sp -= 2;
+                    mmu.write16(reg.sp, reg.pc);
+                    reg.pc = nn;
+                    m += 2;
+                }
+                break;
             case 0xD5:
                 cout << "PUSH DE\n";
                 reg.sp -= 2;
@@ -908,6 +1169,13 @@ int main(int argc, char *args[])
                     reg.sp += 2;
                     m += 2;
                 }
+                break;
+            case 0xD9:
+                cout << "RETI\n";
+                reg.pc = mmu.read16(reg.sp);
+                reg.sp += 2;
+                ime = 1;
+                m = 3;
                 break;
             case 0xE0:
                 cout << "LD [0xFF 0x" << unsigned(mmu.read8(reg.pc)) << "],A\n";
@@ -949,16 +1217,34 @@ int main(int argc, char *args[])
                 reg.sp += n;
                 m = 1;
                 break;
+            case 0xE9:
+                cout << "JP [HL]\n";
+                reg.pc = mmu.read16(reg.gethl());
+                m = 1;
+                break;
             case 0xEA:
                 cout << "LD [0x" << unsigned(mmu.read16(reg.pc)) << "],A\n";
                 mmu.write8(mmu.read16(reg.pc), reg.a);
                 reg.pc += 2;
                 m = 4;
                 break;
+            case 0xEF:
+                cout << "RST 0x28\n";
+                reg.sp -= 2;
+                mmu.write16(reg.sp, reg.pc);
+                reg.pc = 0x0028;
+                m = 3;
+                break;
             case 0xF0:
                 cout << "LD A,[0xFF 0x" << unsigned(mmu.read8(reg.pc)) << "]\n";
                 reg.a = mmu.read8(0xFF00 + mmu.read8(reg.pc));
                 reg.pc++;
+                m = 3;
+                break;
+            case 0xF1:
+                cout << "POP AF\n";
+                reg.setaf(mmu.read16(reg.sp));
+                reg.sp += 2;
                 m = 3;
                 break;
             case 0xF2:
@@ -970,6 +1256,12 @@ int main(int argc, char *args[])
                 cout << "DI\n";
                 ime = 0;
                 m = 1;
+                break;
+            case 0xF5:
+                cout << "PUSH AF\n";
+                reg.sp -= 2;
+                mmu.write16(reg.sp, reg.getaf());
+                m = 3;
                 break;
             case 0xF6:
                 cout << "OR 0x" << unsigned(mmu.read8(reg.pc)) << "\n";
@@ -986,6 +1278,11 @@ int main(int argc, char *args[])
                 reg.a = mmu.read8(mmu.read16(reg.pc));
                 reg.pc += 2;
                 m = 4;
+                break;
+            case 0xFB:
+                cout << "EI\n";
+                ime = 1;
+                m = 1;
                 break;
             case 0xFE:
                 cout << "CP 0x" << unsigned(mmu.read8(reg.pc)) << "\n";

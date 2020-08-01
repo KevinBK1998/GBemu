@@ -42,7 +42,7 @@ typedef struct OBJM
 struct GPU
 {
     //GPU registers
-    uint8_t bgpal, scx, scy, line, objpal[2];
+    uint8_t bgpal, scx, scy, line, linec, dma, wy, wx, objpal[2];
     struct LCDC
     {
         bool lcdOn, winMap, winOn, bgSet, bgMap, sprSize, sprOn, bgOn;
@@ -86,7 +86,7 @@ struct GPU
     */
     //GPU memory
     uint8_t vram[8192];
-    uint8_t oam[160];
+    uint8_t oam[256];
     //object meta
     OBJM objAttr[40];
     uint8_t row[160];
@@ -325,8 +325,9 @@ struct GPU
         //Handle events on queue
         if (SDL_PollEvent(&e) != 0)
         {
-            if (joyp.input(e))
-                return 1;
+            int i=joyp.input(e);
+            if (i)
+                return i;
             //User requests quit
             if (e.type == SDL_QUIT)
             {
@@ -350,6 +351,12 @@ struct GPU
             return scx;
         case 0x44:
             return line;
+        case 0x45:
+            return linec;
+        case 0x4A:
+            return wy;
+        case 0x4B:
+            return wx;
         default:
             //std::cout << "GPU Read error:0x" << add << "\n";
             return '-';
@@ -378,6 +385,9 @@ struct GPU
         case 0x43:
             scx = data;
             break;
+        case 0x45:
+            linec = data;
+            break;
         case 0x47:
             bgpal = data;
             break;
@@ -386,6 +396,12 @@ struct GPU
             break;
         case 0x49:
             objpal[1] = data;
+            break;
+        case 0x4A:
+            wy = data;
+            break;
+        case 0x4B:
+            wx = data;
             break;
         default:
             std::cout << "GPU Write error:0x" << add << "\n";

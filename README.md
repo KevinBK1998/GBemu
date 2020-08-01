@@ -8,8 +8,8 @@ Play Pokemon Red on GBemu
 Kevin Bijoy Kurian
 
 ## Additional Info
-* ttt.gb - no SGB, no MBC, 32kROM, Japan, None
-* tet.gb - no SGB, no MBC, 32kROM, Japan, Nintendo(old)
-* red.gb - SGB enabled, MBC3+RAM+BATTERY, 1024kROM, 32kERAM, Non-Japan, Nintendo(new)
+* ttt.gb - no SGB, no MBC, 32kROM, Japan, None , Works but no sound
+* tet.gb - no SGB, no MBC, 32kROM, Japan, Nintendo(old) , Not working 
+* red.gb - SGB enabled, MBC3+RAM+BATTERY, 1024kROM, 32kERAM, Non-Japan, Nintendo(new) , Not working 
 ## Acknowledgments
 * Imran Nazar

@@ -1187,16 +1187,8 @@ struct CPU
     }
     void sub_a()
     {
-        int result = reg.a - reg.a;
-        reg.f = 0;
-        if (!(result & 0xFF))
-            reg.f |= 0x80;
-        reg.f |= 0x40;
-        if ((reg.a & 0xF) - (reg.a & 0xF) < 0)
-            reg.f |= 0x20;
-        if (result < 0)
-            reg.f |= 0x10;
-        reg.a = result;
+        reg.f = 0xC0;
+        reg.a = 0;
         m = 1;
     }
     void sbc_b()
@@ -1300,16 +1292,16 @@ struct CPU
     }
     void sbc_a()
     {
-        int result = reg.a - (reg.a + ((reg.f & 0x10) != 0));
+        int res = -((reg.f & 0x10) != 0);
         reg.f = 0;
-        if (!(result & 0xFF))
+        if (!(res & 0xFF))
             reg.f |= 0x80;
         reg.f |= 0x40;
         if ((reg.a & 0xF) - ((reg.a & 0xF) + ((reg.f & 0x10) != 0)) < 0)
             reg.f |= 0x20;
-        if (result < 0)
+        if (res < 0)
             reg.f |= 0x10;
-        reg.a = result;
+        reg.a = res;
         m = 1;
     }
     //Ax Instructions
@@ -1378,11 +1370,9 @@ struct CPU
     }
     void and_a()
     {
-        uint8_t res = reg.a & reg.a;
         reg.f = 0x20;
-        if (!res)
+        if (!reg.a)
             reg.f |= 0x80;
-        reg.a = res;
         m = 1;
     }
     void xor_b()
@@ -1450,8 +1440,8 @@ struct CPU
     }
     void xor_a()
     {
-        reg.a=0;
-        reg.f=0x80;
+        reg.a = 0;
+        reg.f = 0x80;
         m = 1;
     }
     //Bx Instructions
@@ -1520,11 +1510,9 @@ struct CPU
     }
     void or_a()
     {
-        uint8_t res = reg.a | reg.a;
         reg.f = 0;
-        if (!res)
+        if (!reg.a)
             reg.f |= 0x80;
-        reg.a = res;
         m = 1;
     }
     void cp_b()
@@ -1693,7 +1681,7 @@ struct CPU
     void rst_0()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc );
         reg.pc = 0x0000;
         m = 3;
     }
@@ -1768,7 +1756,7 @@ struct CPU
     void rst_8()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc );
         reg.pc = 0x0008;
         m = 3;
     }
@@ -1843,7 +1831,7 @@ struct CPU
     void rst_10()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc );
         reg.pc = 0x0010;
         m = 3;
     }
@@ -1909,7 +1897,7 @@ struct CPU
     void rst_18()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc );
         reg.pc = 0x0018;
         m = 3;
     }
@@ -1952,7 +1940,7 @@ struct CPU
     void rst_20()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc);
         reg.pc = 0x0020;
         m = 3;
     }
@@ -1990,7 +1978,7 @@ struct CPU
     void rst_28()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc );
         reg.pc = 0x0028;
         m = 3;
     }
@@ -2037,7 +2025,7 @@ struct CPU
     void rst_30()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc );
         reg.pc = 0x0030;
         m = 3;
     }
@@ -2084,7 +2072,7 @@ struct CPU
     void rst_38()
     {
         reg.sp -= 2;
-        mmu.write16(reg.sp, reg.pc + 2);
+        mmu.write16(reg.sp, reg.pc);
         reg.pc = 0x0038;
         m = 3;
     }
@@ -2097,7 +2085,7 @@ struct CPU
     //Interrupts
     void checkInt()
     {
-        if (ime && mmu.ie && mmu.ifl)
+        if (ime && (mmu.ie & mmu.ifl))
         {
             uint8_t fired = mmu.ie & mmu.ifl;
             cout << "IE:0x" << unsigned(mmu.ie) << " IF:0x" << unsigned(mmu.ifl) << endl;
@@ -2181,8 +2169,8 @@ struct CPU
                     if (!gpu.ctrl.lcdOn)
                         gpu.clear();
                     if (gpu.renScreen())
-                        mmu.ifl |= 0x10;//Joypad
-                    mmu.ifl |= 1;//Vblank
+                        mmu.ifl |= 0x10; //Joypad
+                    mmu.ifl |= 1;        //Vblank
                 }
                 else
                 {

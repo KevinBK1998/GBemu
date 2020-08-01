@@ -209,10 +209,7 @@ struct MMU
             switch (add & 0x0F00)
             {
             case 0xE00:
-                if (add < 0xFEA0)
-                    gpu.oam[add & 0xFF] = data;
-                else
-                    cout << "Access to 0x" << add << "  Denied\n";
+                gpu.oam[add & 0xFF] = data;
                 gpu.updateObj(add & 0xFF, data);
                 break;
             case 0xF00:
@@ -220,6 +217,8 @@ struct MMU
                     b = !data;
                 else if (add == 0xFFFF)
                     ie = data;
+                else if (add == 0xFF46)
+                    dmaTransfer(data);
                 else if (add < 0xFF80) //Memory MAP
                     switch (add & 0xF0)
                     {
@@ -298,7 +297,7 @@ struct MMU
             exit(-1);
         }
         int hB = 0x80;
-        while (hB < 0xA0)
+        while (hB < 0x98)
         {
             fout << hex << uppercase << "//" << hB << dec << ":\n";
             for (int hb = 0; hb <= 0xF; hb++)
@@ -322,7 +321,7 @@ struct MMU
             exit(-1);
         }
         int hB = 0x98;
-        while (hB < 0x9C)
+        while (hB < 0xA0)
         {
             fout << hex << uppercase << "//" << hB << ":\n";
             for (int hb = 0; hb <= 0xF; hb += 2)
@@ -372,5 +371,14 @@ struct MMU
         cout << "IE:" << unsigned(ie) << "\tIF:" << unsigned(ifl) << endl;
         cout << "ERAM:" << unsigned(eExRam) << "\tMODE:" << unsigned(mde) << endl;
         cout << "ROMBank:" << unsigned(romBk) << "\tRAMBank:" << unsigned(ramBk) << endl;
+    }
+    void dmaTransfer(uint8_t data)
+    {
+        uint16_t base1 = (data << 8) & 0x1FFF;
+        if (data > 0xDF || data < 0x80)
+            return;
+        for (int i = 0; i < 0xA0; i++)
+            gpu.oam[i] = wram[base1 + i];
+        cout << "DMA Transfer Complete" << endl;
     }
 } mmu;
