@@ -159,4 +159,11 @@ struct keys
             break;
         }
     }
+    void printState()
+    {
+        cout << "\nJOYPAD:\n";
+        cout << "row0:" << unsigned(row[0]) << "\trow1:" << unsigned(row[1]) << "\tcol:" << unsigned(col) << "\n";
+        cout << "A:"     << !(row[0] & 0x1) << "\tB:"    << !(row[0] & 0x2) << "\tSTART:" << !(row[0] & 0x4) << "\tSELECT:" << !(row[0] & 0x8) << "\n";
+        cout << "RIGHT:" << !(row[1] & 0x1) << "\tLEFT:" << !(row[1] & 0x2) << "\tUP:"    << !(row[1] & 0x4) << "\tDOWN:"   << !(row[1] & 0x8) << "\n";
+    }
 } joyp;

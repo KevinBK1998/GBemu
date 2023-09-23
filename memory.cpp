@@ -52,7 +52,7 @@ struct MMU
             exit(-1);
         }
         int i = 0;
-        while (i < 2097152)
+        while (i < 2097152 && fin)
         {
             fin.get(c);
             rom[i++] = c;
@@ -344,33 +344,10 @@ struct MMU
             hB++;
         }
     }
-    void dumprom()
-    {
-        ofstream fout("rom.txt");
-        if (!fout)
-        {
-            cout << "Error Opening File\n";
-            exit(-1);
-        }
-        int hB = 0;
-        int size = (0x80 << rom[0x148]);
-        fout << "Size:" << unsigned(rom[0x148]) << hex << uppercase;
-        while (hB < size)
-        {
-            fout << "\n"
-                 << hB << ":";
-            for (int hb = 0; hb <= 0xF; hb++)
-            {
-                fout << endl;
-                for (int lb = 0; lb <= 0xF; lb++)
-                    fout << " " << unsigned(rom[(hB << 8) + (hb << 4) + lb]);
-            }
-            hB++;
-        }
-    }
+
     void printState()
     {
-        cout << "MMU:\n";
+        cout << "\nMMU:\n";
         cout << "inBIOS:" << b << "\tcartType:" << unsigned(cartType) << endl;
         cout << "ROMbase:" << romOffset << "\tRAMbase:" << ramOffset << endl;
         cout << "IE:" << unsigned(ie) << "\tIF:" << unsigned(ifl) << endl;

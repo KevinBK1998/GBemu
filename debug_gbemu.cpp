@@ -8,6 +8,7 @@ void reset(char *name)
 	gpu.reset();
 	mmu.reset();
 	cpu.reset();
+	joyp.reset();
 	if (name[0] != '.')
 		mmu.load(name);
 	else
@@ -97,6 +98,7 @@ int main(int argc, char *args[])
 		else if (ch == 'r')
 		{
 			cpu.printState();
+			joyp.printState();
 			gpu.printState();
 			mmu.printState();
 			timer.printState();
@@ -104,7 +106,6 @@ int main(int argc, char *args[])
 		else if (ch == 'm')
 		{
 			mmu.dump();
-			mmu.dumprom();
 			mmu.dumpmap();
 			mmu.dumpset();
 			gpu.dumpoam();

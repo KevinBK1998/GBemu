@@ -8,7 +8,7 @@ Play Pokemon Red on GBemu
 Kevin Bijoy Kurian
 
 ## Build
-g++ test.cpp `sdl2-config --libs --cflags` -o test
+g++ debug_gbemu.cpp `sdl2-config --libs --cflags` -o DebugGBemu
 g++ debug/debug_tiles.cpp `sdl2-config --libs --cflags` -o debug_tiles
 
 ## Additional Info
