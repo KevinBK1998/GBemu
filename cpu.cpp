@@ -2157,6 +2157,10 @@ struct CPU
         ime = 1;
         cout << hex << uppercase << "Reset\n";
     }
+    void timerStep()
+    {
+        timer.timePassed(t);
+    }
     void gpuStep()
     {
         gpu.clk += t;

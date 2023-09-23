@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "gpu.cpp"
 #include "apu.cpp"
+#include "timer.cpp"
 using namespace std;
 struct MMU
 {
@@ -114,6 +115,8 @@ struct MMU
                     case 0x00:
                         if (add == 0xFF00)
                             return joyp.read();
+                        else if (add > 0xFF02 && add < 0xFF08)
+                            return timer.read(add);
                         else if (add == 0xFF0F)
                             return ifl;
                         else
@@ -227,6 +230,8 @@ struct MMU
                     case 0x00:
                         if (add == 0xFF00)
                             joyp.write(data);
+                        else if (add > 0xFF02 && add < 0xFF08)
+                            timer.write(add, data);
                         else if (add == 0xFF0F)
                             ifl = data;
                         else

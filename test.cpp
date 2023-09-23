@@ -26,6 +26,7 @@ void step()
 		cpu.m_tot += cpu.m;
 		cpu.t_tot += cpu.t;
 		cpu.gpuStep();
+		cpu.timerStep();
 	}
 	cpu.m = cpu.t = 0;
 	cpu.checkInt();
@@ -98,6 +99,7 @@ int main(int argc, char *args[])
 			cpu.printState();
 			gpu.printState();
 			mmu.printState();
+			timer.printState();
 		}
 		else if (ch == 'm')
 		{
