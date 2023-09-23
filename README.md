@@ -9,6 +9,7 @@ Kevin Bijoy Kurian
 
 ## Build
 g++ test.cpp `sdl2-config --libs --cflags` -o test
+g++ debug/debug_tiles.cpp `sdl2-config --libs --cflags` -o debug_tiles
 
 ## Additional Info
 * ttt.gb - no SGB, no MBC, 32kROM, Japan, None , Works but no sound
