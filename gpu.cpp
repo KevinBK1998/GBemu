@@ -3,6 +3,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include "keys.cpp"
+using namespace std;
 const int SCREEN_WIDTH = 160;  //*2;
 const int SCREEN_HEIGHT = 144; //*2;
 
@@ -104,7 +105,7 @@ struct GPU
         //Initialize SDL
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
-            printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+            cout << "SDL could not initialize! SDL Error: "<<SDL_GetError()<<endl;
             success = false;
         }
         else
@@ -112,14 +113,14 @@ struct GPU
             //Set texture filtering to linear
             if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
             {
-                printf("Warning: Linear texture filtering not enabled!");
+                cout<<"Warning: Linear texture filtering not enabled!";
             }
 
             //Create window
             win = SDL_CreateWindow("GBemu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
             if (win == NULL)
             {
-                printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+                cout<<"Window could not be created! SDL Error: "<< SDL_GetError()<<endl;
                 success = false;
             }
             else
@@ -128,7 +129,7 @@ struct GPU
                 ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
                 if (ren == NULL)
                 {
-                    printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+                    cout<<"Renderer could not be created! SDL Error: "<< SDL_GetError()<<endl;
                     success = false;
                 }
                 else
@@ -159,7 +160,7 @@ struct GPU
         //Start up SDL and create window
         if (!init())
         {
-            printf("Failed to initialize!\n");
+            cout<<"Failed to initialize!"<<endl;
         }
         else
         {
@@ -358,7 +359,7 @@ struct GPU
         case 0x4B:
             return wx;
         default:
-            //std::cout << "GPU Read error:0x" << add << "\n";
+            //cout << "GPU Read error:0x" << add << "\n";
             return '-';
         }
     }
@@ -404,20 +405,20 @@ struct GPU
             wx = data;
             break;
         default:
-            std::cout << "GPU Write error:0x" << add << "\n";
+            cout << "GPU Write error:0x" << add << "\n";
             break;
         }
     }
     void printState()
     {
-        std::cout << "GPU:\n";
-        std::cout << "LCD & GPU Control:" << unsigned(ctrl.flags2byte()) << "\n";
-        std::cout << "Scroll Y:" << unsigned(scy) << "\n";
-        std::cout << "Scroll X:" << unsigned(scx) << "\n";
-        std::cout << "Current scanline:" << unsigned(line) << "\n";
-        std::cout << "BG palette:" << unsigned(bgpal) << "\n";
-        std::cout << "OBJ0 palette:" << unsigned(objpal[0]) << "\n";
-        std::cout << "OBJ1 palette:" << unsigned(objpal[1]) << "\n";
+        cout << "\nGPU:\n";
+        cout << "LCD & GPU Control:" << unsigned(ctrl.flags2byte()) << "\n";
+        cout << "Scroll Y:" << unsigned(scy) << "\n";
+        cout << "Scroll X:" << unsigned(scx) << "\n";
+        cout << "Current scanline:" << unsigned(line) << "\n";
+        cout << "BG palette:" << unsigned(bgpal) << "\n";
+        cout << "OBJ0 palette:" << unsigned(objpal[0]) << "\n";
+        cout << "OBJ1 palette:" << unsigned(objpal[1]) << "\n";
     }
     void updateObj(uint8_t add, uint8_t data)
     {

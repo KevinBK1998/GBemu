@@ -7,6 +7,9 @@ Play Pokemon Red on GBemu
 ## Author
 Kevin Bijoy Kurian
 
+## Build
+g++ test.cpp `sdl2-config --libs --cflags` -o test
+
 ## Additional Info
 * ttt.gb - no SGB, no MBC, 32kROM, Japan, None , Works but no sound
 * tet.gb - no SGB, no MBC, 32kROM, Japan, Nintendo(old) , Not working 

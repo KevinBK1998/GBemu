@@ -2137,7 +2137,7 @@ struct CPU
     //Implementation and Mapping
     void printState()
     {
-        cout << "CPU:\n";
+        cout << "\nCPU:\n";
         cout << "a:" << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
         cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
         cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
