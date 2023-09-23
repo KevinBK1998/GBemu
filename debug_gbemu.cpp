@@ -1,6 +1,5 @@
 #include "cpu.cpp"
-// uint16_t brkpt = 0x7DA;
-uint16_t brkpt = 0x1E2; // TEMP.gb debugging
+uint16_t brkpt = 0x1F3; // TEMP.gb debugging
 // uint16_t brkpt = 0x22B0;
 bool brk = true;
 bool debug = false;
@@ -13,12 +12,12 @@ void reset(char *name)
 	if (name[0] != '.'){
 		mmu.load(name);
 		if(name[0] == 'c')
-			brkpt = 0x7DA;
+			brkpt = 0x77D; // cpu_instrs debugging
 	}
 	else
 	{
 		mmu.load("ttt.gb");
-		brkpt = 0x2220; // ttt.gb debugging
+		brkpt = 0x21CC; // ttt.gb debugging
 	}
 }
 void step()
@@ -121,7 +120,7 @@ int main(int argc, char *args[])
 		cout << "\nIP@" << cpu.reg.pc << ":$ ";
 		if (cpu.hlt){
 			cout << "\nOutput:" << dec << unsigned(cpu.reg.b) << hex << endl;
-			break;
+			// break;
 		}
 		cin >> ch;
 		if (ch=='l' || ch == 'S')
