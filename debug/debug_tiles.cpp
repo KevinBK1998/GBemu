@@ -3,9 +3,9 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-const int SCREEN_WIDTH_TILES = 20;
-const int SCREEN_WIDTH = 8*SCREEN_WIDTH_TILES;
-const int SCREEN_HEIGHT = 8*SCREEN_WIDTH_TILES;
+const int SCREEN_WIDTH_TILES = 16;
+const int SCREEN_WIDTH = 9*SCREEN_WIDTH_TILES;
+const int SCREEN_HEIGHT = 9*SCREEN_WIDTH_TILES;
 //The window we'll be rendering to
 SDL_Window *gWindow = NULL;
 //The window renderer

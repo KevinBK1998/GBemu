@@ -105,6 +105,7 @@ struct keys
         {
         case 'a':
             row[0]&=0xE;
+            cout << "A pressed"<<endl;
             break;
         case 'b':
             row[0]&=0xD;
@@ -135,6 +136,7 @@ struct keys
         {
         case 'a':
             row[0]|=0x1;
+            cout << "A released"<<endl;
             break;
         case 'b':
             row[0]|=0x2;

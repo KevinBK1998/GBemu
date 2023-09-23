@@ -348,11 +348,9 @@ struct MMU
     void printState()
     {
         cout << "\nMMU:\n";
-        cout << "inBIOS:" << b << "\tcartType:" << unsigned(cartType) << endl;
-        cout << "ROMbase:" << romOffset << "\tRAMbase:" << ramOffset << endl;
+        cout << "inBIOS:" << b << "\tcartType:" << unsigned(cartType) << "\tERAM:" << unsigned(eExRam) << "\tMODE:" << unsigned(mde) << endl;
+        cout << "ROMbase:" << romOffset << "\tRAMbase:" << ramOffset << "\tROMBank:" << unsigned(romBk) << "\tRAMBank:" << unsigned(ramBk) << endl;
         cout << "IE:" << unsigned(ie) << "\tIF:" << unsigned(ifl) << endl;
-        cout << "ERAM:" << unsigned(eExRam) << "\tMODE:" << unsigned(mde) << endl;
-        cout << "ROMBank:" << unsigned(romBk) << "\tRAMBank:" << unsigned(ramBk) << endl;
     }
     void dmaTransfer(uint8_t data)
     {

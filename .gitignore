@@ -1,5 +1,9 @@
 .vscode
 tileset.bin
+ascii_tiles.gb
 TEMP.gb
-debug_tiles
+DebugTiles
 GBemu
+DebugGBemu
+
+snd.cpp

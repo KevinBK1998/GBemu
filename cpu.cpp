@@ -2141,13 +2141,11 @@ struct CPU
     //Implementation and Mapping
     void printState()
     {
-        cout << "\nCPU:\n";
-        cout << "a:" << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\n";
-        cout << "b:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
-        cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\n";
-        cout << "h:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
-        cout << "pc:" << reg.pc << "\tsp:" << reg.sp << "\n";
-        cout << "z:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\tie:" << unsigned(ime) << "\n";
+        cout << "CPU:\n";
+        cout << "a:" << unsigned(reg.a) << "\tf:" << unsigned(reg.f) << "\tb:" << unsigned(reg.b) << "\tc:" << unsigned(reg.c) << "\n";
+        cout << "d:" << unsigned(reg.d) << "\te:" << unsigned(reg.e) << "\th:" << unsigned(reg.h) << "\tl:" << unsigned(reg.l) << "\n";
+        cout << "pc:" << reg.pc << "\tsp:" << reg.sp <<"\tie:" << unsigned(ime) << "\n";
+        cout << "FLAGS=\tz:" << ((reg.f & 0x80) != 0) << "\tn:" << ((reg.f & 0x40) != 0) << "\th:" << ((reg.f & 0x20) != 0) << "\tc:" << ((reg.f & 0x10) != 0) << "\n";
         cout << "Time passed:" << dec << t_tot / 1000 << " ms" << hex << endl;
     }
     void reset()

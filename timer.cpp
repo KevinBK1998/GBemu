@@ -95,7 +95,6 @@ struct TIMER
     }
     void printState(){
         cout << "\nTIMER:\n";
-        cout << "divReg:" << unsigned(divReg) << "\tctrlReg:" << unsigned(ctrlReg) << "\n";
-        cout << "countReg:" << unsigned(countReg) << "\tmodReg:" << unsigned(modReg) << "\n";
+        cout << "divReg:" << unsigned(divReg) << "\tctrlReg:" << unsigned(ctrlReg) << "\tcountReg:" << unsigned(countReg) << "\tmodReg:" << unsigned(modReg) << "\n";
     }
 } timer;

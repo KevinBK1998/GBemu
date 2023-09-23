@@ -409,16 +409,25 @@ struct GPU
             break;
         }
     }
+
+    char* getModeString(){
+        switch (stat.mode)
+        {
+        case 0: return "HBLANK";
+        case 1: return "VBLANK";
+        case 2: return "OAM";
+        case 3: return "VRAM";
+        default: return "UNKNOWN";
+        }
+    }
+
     void printState()
     {
         cout << "\nGPU:\n";
-        cout << "LCD & GPU Control:" << unsigned(ctrl.flags2byte()) << "\n";
-        cout << "Scroll Y:" << unsigned(scy) << "\n";
-        cout << "Scroll X:" << unsigned(scx) << "\n";
+        cout << "LCD & GPU Control:" << unsigned(ctrl.flags2byte()) << "\tStatus:" << unsigned(stat.flags2byte()) << "\tMODE:" << getModeString() << "\n";
+        cout << "Scroll Y:" << unsigned(scy) << "\tScroll X:" << unsigned(scx) << "\n";
         cout << "Current scanline:" << unsigned(line) << "\n";
-        cout << "BG palette:" << unsigned(bgpal) << "\n";
-        cout << "OBJ0 palette:" << unsigned(objpal[0]) << "\n";
-        cout << "OBJ1 palette:" << unsigned(objpal[1]) << "\n";
+        cout << "BG palette:" << unsigned(bgpal) << "\tOBJ0 palette:" << unsigned(objpal[0]) << "\tOBJ1 palette:" << unsigned(objpal[1]) << "\n";
     }
     void updateObj(uint8_t add, uint8_t data)
     {

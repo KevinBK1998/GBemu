@@ -1,6 +1,7 @@
 #include "cpu.cpp"
 // uint16_t brkpt = 0x7DA;
-uint16_t brkpt = 0x150;
+uint16_t brkpt = 0x1E2; // TEMP.gb debugging
+// uint16_t brkpt = 0x22B0;
 bool brk = true;
 bool debug = false;
 void reset(char *name)
@@ -9,10 +10,16 @@ void reset(char *name)
 	mmu.reset();
 	cpu.reset();
 	joyp.reset();
-	if (name[0] != '.')
+	if (name[0] != '.'){
 		mmu.load(name);
+		if(name[0] == 'c')
+			brkpt = 0x7DA;
+	}
 	else
+	{
 		mmu.load("ttt.gb");
+		brkpt = 0x2220; // ttt.gb debugging
+	}
 }
 void step()
 {
@@ -42,7 +49,7 @@ void sloop(int i)
 	{
 		if (brkpt == cpu.reg.pc && brk)
 		{
-			cout << "BRKP@";
+			cout << "Reached Breakpoint, enter s to proceed";
 			brk = false;
 			debug = true;
 			break;
@@ -111,11 +118,11 @@ int main(int argc, char *args[])
 			gpu.dumpoam();
 		}
 		brk = true;
-		cout << "IP:" << cpu.reg.pc << endl;
-		cout << "Output:" << dec << unsigned(cpu.reg.b) << hex << endl;
-		if (cpu.hlt)
+		cout << "\nIP@" << cpu.reg.pc << ":$ ";
+		if (cpu.hlt){
+			cout << "\nOutput:" << dec << unsigned(cpu.reg.b) << hex << endl;
 			break;
-		cout << "$:" ;
+		}
 		cin >> ch;
 		if (ch=='l' || ch == 'S')
 		cin >> times;
