@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdlib.h>
 using namespace std;
+bool preMapDebug = false;
 struct CPU
 {
     registers reg;
@@ -1715,7 +1716,10 @@ struct CPU
     void CB()
     {
         uint8_t op = mmu.read8(reg.pc++);
-        preMap(op);
+        if(preMapDebug)
+            preMapc(op);
+        else
+            preMap(op);
     }
     void callz_nn()
     {
@@ -3052,6 +3056,7 @@ struct CPU
             break;
         case 0xCB:
             cout << "0xCB:\n";
+            preMapDebug = true;
             CB();
             break;
         case 0xCC:
@@ -3848,6 +3853,7 @@ struct CPU
             jpz_nn();
             break;
         case 0xCB:
+            preMapDebug = false;
             CB();
             break;
         case 0xCC:

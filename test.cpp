@@ -1,6 +1,8 @@
 #include "cpu.cpp"
-uint16_t brkpt = 0x200;
+// uint16_t brkpt = 0x7DA;
+uint16_t brkpt = 0x150;
 bool brk = true;
+bool debug = false;
 void reset(char *name)
 {
 	gpu.reset();
@@ -17,7 +19,10 @@ void step()
 		cpu.m = 1;
 	else
 	{
-		cpu.map(mmu.read8(cpu.reg.pc++));
+		if (debug)
+			cpu.mapc(mmu.read8(cpu.reg.pc++));
+		else
+			cpu.map(mmu.read8(cpu.reg.pc++));
 		cpu.m_tot += cpu.m;
 		cpu.t_tot += cpu.t;
 		cpu.gpuStep();
@@ -28,27 +33,27 @@ void step()
 	cpu.t_tot += cpu.t;
 	if (cpu.m)
 		cpu.gpuStep();
-	brk = true;
 }
-void frame()
+void sloop(int i)
 {
-	int nxtFrame = cpu.t_tot + 70224;
-	do
+	for (; i > 0; i--)
 	{
 		if (brkpt == cpu.reg.pc && brk)
 		{
-			//cout << "BRKP:";
+			cout << "BRKP@";
 			brk = false;
+			debug = true;
 			break;
 		}
 		step();
-
-	} while (cpu.t_tot < nxtFrame);
+	}
 }
-void floop()
+void frame()
 {
-	int i;
-	cin >> i;
+	sloop(70224);
+}
+void floop(int i)
+{
 	for (; i > 0; i--)
 	{
 		if (brkpt == cpu.reg.pc)
@@ -61,35 +66,20 @@ void floop()
 }
 int main(int argc, char *args[])
 {
-	char ch = 'c';
+	char ch = 'l';
+	int times = 100;
 	reset(args[argc - 1]);
+	floop(100);
 	do
 	{
-		//cin >> ch;
 		if (ch == 's')
 		{
-			if (brkpt == cpu.reg.pc && brk)
-			{
-				cout << "BRKP:";
-				brk = false;
-				continue;
-			}
-			step();
+			brk = false;
+			sloop(1);
 		}
 		else if (ch == 'S')
 		{
-			int i;
-			cin >> i;
-			for (; i > 0; i--)
-			{
-				if (brkpt == cpu.reg.pc && brk)
-				{
-					cout << "BRKP:";
-					brk = false;
-					break;
-				}
-				step();
-			}
+			sloop(times);
 		}
 		else if (ch == 'c')
 		{
@@ -97,7 +87,7 @@ int main(int argc, char *args[])
 		}
 		else if (ch == 'l')
 		{
-			floop();
+			floop(times);
 		}
 		else if (ch == 'e')
 		{
@@ -114,8 +104,18 @@ int main(int argc, char *args[])
 			mmu.dump();
 			mmu.dumprom();
 			mmu.dumpmap();
+			mmu.dumpset();
 			gpu.dumpoam();
 		}
+		brk = true;
+		cout << "IP:" << cpu.reg.pc << endl;
+		cout << "Output:" << dec << unsigned(cpu.reg.b) << hex << endl;
+		if (cpu.hlt)
+			break;
+		cout << "$:" ;
+		cin >> ch;
+		if (ch=='l' || ch == 'S')
+		cin >> times;
 	} while (ch != 'e');
 	return 0;
 }
