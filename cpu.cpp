@@ -6438,7 +6438,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.a >> n))
+        if (!((reg.a >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6446,7 +6446,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.b >> n))
+        if (!((reg.b >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6454,7 +6454,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.c >> n))
+        if (!((reg.c >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6462,7 +6462,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.d >> n))
+        if (!((reg.d >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6470,7 +6470,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.e >> n))
+        if (!((reg.e >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6478,7 +6478,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.h >> n))
+        if (!((reg.h >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6486,7 +6486,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(reg.l >> n))
+        if (!((reg.l >> n)&1))
             reg.f |= 0x80;
         m = 2;
     }
@@ -6494,7 +6494,7 @@ struct CPU
     {
         reg.f &= 0x10;
         reg.f |= 0x20;
-        if (!(mmu.read8(reg.gethl()) >> n))
+        if (!((mmu.read8(reg.gethl()) >> n)&1))
             reg.f |= 0x80;
         m = 3;
     }

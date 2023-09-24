@@ -1,6 +1,6 @@
 #include "cpu.cpp"
-uint16_t brkpt = 0x783; // TEMP.gb debugging
-// uint16_t brkpt = 0x22B0;
+// uint16_t brkpt = 0x75a; // TEMP.gb debugging
+uint16_t brkpt = 0x22B0;
 bool brk = true;
 bool debug = false;
 void reset(char *name)
@@ -17,8 +17,7 @@ void reset(char *name)
 	else
 	{
 		mmu.load("ttt.gb");
-		// brkpt = 0x223A; // ttt.gb debugging
-		brkpt = 0x23F0; // ttt.gb debugging
+		// brkpt = 0x23F3; // ttt.gb debugging
 	}
 }
 void step()
@@ -126,6 +125,7 @@ int main(int argc, char *args[])
 		cin >> ch;
 		if (ch=='l' || ch == 'S')
 		cin >> times;
+		// debug = true;
 	} while (ch != 'e');
 	return 0;
 }
