@@ -1,6 +1,6 @@
 #include "cpu.cpp"
-// uint16_t brkpt = 0x75a; // TEMP.gb debugging
-uint16_t brkpt = 0x22B0;
+// uint16_t brkpt = 0x7a1; // TEMP.gb debugging
+uint16_t brkpt = 0x1000;
 bool brk = true;
 bool debug = false;
 void reset(char *name)
@@ -75,7 +75,7 @@ void floop(int i)
 int main(int argc, char *args[])
 {
 	char ch = 'l';
-	int times = 100;
+	int times = 1000;
 	reset(args[argc - 1]);
 	floop(100);
 	do

@@ -4,8 +4,10 @@
 #include <fstream>
 using namespace std;
 const int SCREEN_WIDTH_TILES = 16;
-const int SCREEN_WIDTH = 9*SCREEN_WIDTH_TILES;
-const int SCREEN_HEIGHT = 9*SCREEN_WIDTH_TILES;
+const int ZOOM = 2;
+
+const int SCREEN_WIDTH = 9*ZOOM*SCREEN_WIDTH_TILES;
+const int SCREEN_HEIGHT = 9*ZOOM*SCREEN_WIDTH_TILES;
 //The window we'll be rendering to
 SDL_Window *gWindow = NULL;
 //The window renderer
@@ -154,20 +156,22 @@ int main(int argc, char *args[])
 					{
 						int strength = ((lb >> (7 - x)) & 1) + 2 * ((hb >> (7 - x)) & 1);
 						remap(strength);
-						//SDL_Rect fillRect = {2 * x, 2 * y, 2 * x + 1, 2 * y + 1};
-						//SDL_RenderFillRect(gRenderer, &fillRect);
 						uint8_t xoff=(tno%SCREEN_WIDTH_TILES)*9,yoff=(tno/SCREEN_WIDTH_TILES)*9;
-						SDL_RenderDrawPoint(gRenderer, xoff+x, yoff+y);
+						// SDL_RenderDrawPoint(gRenderer, xoff+x, yoff+y);
+						SDL_Rect fillRect = {ZOOM*(xoff+x), ZOOM*(yoff+y), ZOOM , ZOOM};
+						SDL_RenderFillRect(gRenderer, &fillRect);
 					}
 				}
-			}
-			//Update screen
-			SDL_RenderPresent(gRenderer);
 			// cin >> c;
 			// if(c=='b'){
 			// 	quit = true;
 			// 	break;
 			// }
+			}
+			// SDL_Rect fillRect = {45, 0, 50, 50};
+			// SDL_RenderFillRect(gRenderer, &fillRect);
+			//Update screen
+			SDL_RenderPresent(gRenderer);
 		}
 	}
 
