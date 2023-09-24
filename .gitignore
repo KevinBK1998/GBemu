@@ -1,4 +1,6 @@
 .vscode
+bgmap.txt
+bgmap.bin
 tileset.bin
 ascii_tiles.gb
 TEMP.gb

@@ -1,5 +1,5 @@
 #include "cpu.cpp"
-uint16_t brkpt = 0x7a3; // TEMP.gb debugging
+uint16_t brkpt = 0x783; // TEMP.gb debugging
 // uint16_t brkpt = 0x22B0;
 bool brk = true;
 bool debug = false;

@@ -303,43 +303,42 @@ struct MMU
             cout << "Error Opening File\n";
             exit(-1);
         }
-        int hB = 0x80;
-        while (hB < 0x98)
+        uint16_t i = 0x8000;
+        while (i < 0x9800)
         {
-            for (int hb = 0; hb <= 0xF; hb++)
-            {
-                for (int lb = 0; lb <= 0xF; lb++)
-                {
-                    uint8_t v = read8((hB << 8) + (hb << 4) + lb);
-                    fout.write((char*) &v, sizeof(uint8_t));
-                }
-            }
-            hB++;
+            uint8_t v = read8(i);
+            fout.write((char*) &v, sizeof(uint8_t));
+            i++;
         }
     }
     void dumpmap()
     {
-        ofstream fout("map.txt");
-        if (!fout)
+        ofstream textOut("bgmap.txt");
+        ofstream fout("bgmap.bin", ios::out|ios::binary);
+        if (!(fout && textOut))
         {
-            cout << "Error Opening File\n";
+            cout << "Error Opening Dump File\n";
             exit(-1);
         }
         int hB = 0x98;
         while (hB < 0xA0)
         {
-            fout << hex << uppercase << "//" << hB << ":\n";
+            textOut << hex << uppercase << hB << "00:\n";
             for (int hb = 0; hb <= 0xF; hb += 2)
             {
                 for (int lb = 0; lb < 0x20; lb++)
                 {
                     uint8_t v = read8((hB << 8) + (hb << 4) + lb);
                     if ((v > 0x1F && v <= 0x7F))
-                        fout << v << " ";
-                    else
-                        fout << unsigned(v) << " ";
+                        textOut << v << "  ";
+                    else{
+                        textOut << unsigned(v)<< "T";
+                        if (v < 16)
+                        textOut << " ";
+                    }
+                    fout.write((char*) &v, sizeof(uint8_t));
                 }
-                fout << endl;
+                textOut << endl;
             }
             hB++;
         }
