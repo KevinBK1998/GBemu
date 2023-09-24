@@ -1,5 +1,5 @@
 #include "cpu.cpp"
-uint16_t brkpt = 0x1F3; // TEMP.gb debugging
+uint16_t brkpt = 0x7a3; // TEMP.gb debugging
 // uint16_t brkpt = 0x22B0;
 bool brk = true;
 bool debug = false;
@@ -17,7 +17,8 @@ void reset(char *name)
 	else
 	{
 		mmu.load("ttt.gb");
-		brkpt = 0x21CC; // ttt.gb debugging
+		// brkpt = 0x223A; // ttt.gb debugging
+		brkpt = 0x23F0; // ttt.gb debugging
 	}
 }
 void step()
@@ -117,11 +118,11 @@ int main(int argc, char *args[])
 			gpu.dumpoam();
 		}
 		brk = true;
-		cout << "\nIP@" << cpu.reg.pc << ":$ ";
 		if (cpu.hlt){
 			cout << "\nOutput:" << dec << unsigned(cpu.reg.b) << hex << endl;
 			// break;
 		}
+		cout << "\nIP@" << cpu.reg.pc << ":$ ";
 		cin >> ch;
 		if (ch=='l' || ch == 'S')
 		cin >> times;

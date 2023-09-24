@@ -2164,7 +2164,7 @@ struct CPU
         gpu.clk += t;
         switch (gpu.stat.mode)
         {
-        case 0:
+        case HBLANK:
             if (gpu.clk >= 204)
             { //if hblank done go to oam
                 gpu.clk = 0;
@@ -2184,7 +2184,7 @@ struct CPU
                 }
             }
             break;
-        case 1:
+        case VBLANK:
             if (gpu.clk >= 456)
             { //wait for 10 lines
                 gpu.clk = 0;
@@ -2196,14 +2196,14 @@ struct CPU
                 }
             }
             break;
-        case 2:
+        case OAM:
             if (gpu.clk >= 80)
             { //if oam done go to vram
                 gpu.stat.mode = 3;
                 gpu.clk = 0;
             }
             break;
-        case 3:
+        case VRAM:
             if (gpu.clk >= 172)
             { //if vram done scanline and enter hblank
                 gpu.stat.mode = 0;

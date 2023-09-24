@@ -6,7 +6,12 @@
 using namespace std;
 const int SCREEN_WIDTH = 160;  //*2;
 const int SCREEN_HEIGHT = 144; //*2;
-
+enum MODE{
+    HBLANK,
+    VBLANK,
+    OAM,
+    VRAM,
+};
 typedef struct OBJM
 {
     uint8_t y, x, tile;
@@ -413,10 +418,10 @@ struct GPU
     char* getModeString(){
         switch (stat.mode)
         {
-        case 0: return "HBLANK";
-        case 1: return "VBLANK";
-        case 2: return "OAM";
-        case 3: return "VRAM";
+        case HBLANK: return "HBLANK";
+        case VBLANK: return "VBLANK";
+        case OAM: return "OAM";
+        case VRAM: return "VRAM";
         default: return "UNKNOWN";
         }
     }
