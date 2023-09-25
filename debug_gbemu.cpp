@@ -1,5 +1,5 @@
 #include "cpu.cpp"
-// uint16_t brkpt = 0x7a1; // TEMP.gb debugging
+// uint16_t brkpt = 0x8f5; // TEMP.gb debugging
 uint16_t brkpt = 0x1000;
 bool brk = true;
 bool debug = false;
@@ -72,6 +72,10 @@ void floop(int i)
 		frame();
 	}
 }
+void sleep(){
+	for(int i=0;i<30000;i++)
+		for(int j=0;j<32000;j++);
+}
 int main(int argc, char *args[])
 {
 	char ch = 'l';
@@ -119,7 +123,8 @@ int main(int argc, char *args[])
 		brk = true;
 		if (cpu.hlt){
 			cout << "\nOutput:" << dec << unsigned(cpu.reg.b) << hex << endl;
-			// break;
+			sleep();
+			break;
 		}
 		cout << "\nIP@" << cpu.reg.pc << ":$ ";
 		cin >> ch;

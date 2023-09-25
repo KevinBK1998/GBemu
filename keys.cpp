@@ -62,7 +62,7 @@ struct keys
                 break;
             case SDLK_ESCAPE:
                 SDL_Quit();
-                //exit(1);
+                exit(0);
                 return -1;
             }
             return 1;
