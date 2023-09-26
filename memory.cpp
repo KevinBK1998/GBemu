@@ -267,7 +267,7 @@ struct MMU
         write8(add + 1, ((data & 0xFF00) >> 8));
         return;
     }
-    void dump()
+    void dump(uint16_t sp)
     {
         ofstream fout("memory.txt");
         if (!fout)
@@ -284,11 +284,17 @@ struct MMU
             {
                 for (int lb = 0; lb <= 0xF; lb++)
                 {
-                    uint8_t v = read8((hB << 8) + (hb << 4) + lb);
+                    uint16_t address = (hB << 8) + (hb << 4) + lb;
+                    if (address == sp)
+                        fout << "SP(";
+                    uint8_t v = read8(address);
                     if (v == '-')
-                        fout << v << " ";
+                        fout << v;
                     else
-                        fout << unsigned(v) << " ";
+                        fout << unsigned(v);
+                    if (address == sp)
+                        fout << ")";
+                    fout << " ";
                 }
                 fout << endl;
             }

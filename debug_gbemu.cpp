@@ -1,6 +1,7 @@
 #include "cpu.cpp"
-// uint16_t brkpt = 0x8f5; // TEMP.gb debugging
-uint16_t brkpt = 0x1000;
+// uint16_t brkpt = 0x7f1; // TEMP.gb debugging
+// uint16_t brkpt = 0x100; // bios.gb debugging
+uint16_t brkpt = 0x1000; //for no debugging
 bool brk = true;
 bool debug = false;
 void reset(char *name)
@@ -22,6 +23,8 @@ void reset(char *name)
 }
 void step()
 {
+	if(debug)
+		cout << "\nIP@" << cpu.reg.pc<<" : ";
 	if (cpu.hlt)
 		cpu.m = 1;
 	else
@@ -115,14 +118,13 @@ int main(int argc, char *args[])
 		}
 		else if (ch == 'm')
 		{
-			mmu.dump();
+			mmu.dump(cpu.reg.sp);
 			mmu.dumpmap();
 			mmu.dumpset();
 			gpu.dumpoam();
 		}
 		brk = true;
 		if (cpu.hlt){
-			cout << "\nOutput:" << dec << unsigned(cpu.reg.b) << hex << endl;
 			sleep();
 			break;
 		}

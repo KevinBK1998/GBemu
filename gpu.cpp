@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include <SDL2/SDL.h>
 #include "keys.cpp"
 using namespace std;
