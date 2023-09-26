@@ -1,5 +1,5 @@
 #include "cpu.cpp"
-// uint16_t brkpt = 0x7f1; // TEMP.gb debugging
+// uint16_t brkpt = 0x90c; // TEMP.gb debugging
 // uint16_t brkpt = 0x100; // bios.gb debugging
 uint16_t brkpt = 0x1000; //for no debugging
 bool brk = true;

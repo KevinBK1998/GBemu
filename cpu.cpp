@@ -1795,7 +1795,7 @@ struct CPU
     void ND()
     {
         //0xD3 not defined
-        cout << "Exit()\n";
+        cout << "Exit(0x"<<unsigned(reg.pc)<<")\n";
         exit(1);
     }
     void callnc_nn()
